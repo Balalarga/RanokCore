@@ -1,0 +1,56 @@
+ARGUMENT X0(4), Y0(4), Z0(4);
+
+VARIABLE X=X0;
+VARIABLE Y=Y0;
+VARIABLE Z=Z0;
+
+VARIABLE S=16-X^2-Y^2-Z^2;
+
+VARIABLE A=3-ABS(X);
+VARIABLE B=3-ABS(Y);
+VARIABLE C=3-ABS(Z);
+VARIABLE K=A&B&C;
+
+VARIABLE SH=S&K;
+var z13 = (Z-1.3)^2;
+var z13p = (Z+1.3)^2;
+var y13 = (Y-1.3)^2;
+var y13p = (Y+1.3)^2;
+var z3p = (Z+3)^2;
+var z3 = (Z-3)^2;
+var x3 = (X+3)^2;
+var x13 = (X-1.3)^2;
+var y3 = (Y+3)^2;
+var x13p = (X+1.3)^2;
+
+VARIABLE T11 = 0.3 - (X-3)^2 - Y^2 - Z^2;
+
+VARIABLE T21 = 0.3 - x13 - (Y-3)^2 - z13;
+VARIABLE T22 = 0.3 - x13p - (Y-3)^2 - z13p;
+
+VARIABLE T31 = 0.3 - x13 - y13 - z3;
+VARIABLE T32 = 0.3 - X^2 - Y^2 - z3;
+VARIABLE T33 = 0.3 - x13p - y13p - z3;
+
+VARIABLE T41 = 0.3 - x13 - y13 - z3p;
+VARIABLE T42 = 0.3 - x13p - y13 - z3p;
+VARIABLE T43 = 0.3 - x13 - y13p - z3p;
+VARIABLE T44 = 0.3 - x13p - y13p - z3p;
+
+VARIABLE T51 = 0.3 - X^2 - y3 - Z^2;
+VARIABLE T52 = 0.3 - x13 - y3 - z13;
+VARIABLE T53 = 0.3 - x13 - y3 - z13p;
+VARIABLE T54 = 0.3 - x13p - y3 - z13;
+VARIABLE T55 = 0.3 - x13p - y3 - z13p;
+
+VARIABLE T61 = 0.3 - x3 - y13 - z13;
+VARIABLE T62 = 0.3 - x3 - Y^2 - z13;
+VARIABLE T63 = 0.3 - x3 - y13p - z13;
+VARIABLE T64 = 0.3 - x3 - y13 - z13p;
+VARIABLE T65 = 0.3 - x3 - Y^2 - z13p;
+VARIABLE T66 = 0.3 - x3 - y13p - z13p;
+
+
+VARIABLE W=SH&(-T11)&(-T21)&(-T22)&(-T31)&(-T32)&(-T33)&(-T41)&(-T42)&(-T43)&(-T44)&(-T51)&(-T52)&(-T53)&(-T54)&(-T55)&(-T61)&(-T62)&(-T63)&(-T64)&(-T65)&(-T66);
+
+RETURN W;

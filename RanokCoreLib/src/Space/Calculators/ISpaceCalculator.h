@@ -2,7 +2,7 @@
 #define ISPACECALCULATOR_H
 
 #include <QThread>
-#include <QtGui/qcolor.h>
+#include "Color.h"
 #include "../SpaceBuilder.h"
 #include "Language/Program.h"
 #include "LinearGradientModel.h"
@@ -26,11 +26,11 @@ public:
     void SetCalculatorMode(CalculatorMode mode);
     CalculatorMode GetCalculatorMode();
 
-    QColor GetMImageColor(double value);
-    void SetMImageColorGradiend(const QVector<QColor>& colors);
+    Color GetMImageColor(double value);
+    void SetMImageColorGradiend(const std::vector<Color>& colors);
 
-    QColor GetModelColor();
-    void SetModelColor(const QColor &newDefaultColor);
+    Color GetModelColor();
+    void SetModelColor(const Color &newDefaultColor);
 
     void SetProgram(Program *program);
     Program* GetProgram();
@@ -50,7 +50,7 @@ protected:
 private:
     CalculatorMode _mode;
 
-    QColor _modelColor;
+    Color _modelColor;
     LinearGradientModel _mimageColorModel;
 
     Program* _program;

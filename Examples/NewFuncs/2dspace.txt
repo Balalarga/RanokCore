@@ -1,0 +1,10 @@
+ARGUMENT X(5), Y(5);
+
+VARIABLE W1=(4-(X*X));
+VARIABLE W2=(4-(Y*Y));
+VARIABLE W=W2&W1;
+
+const r = 2;
+var circle = r^2 - x^2 - y^2;
+
+RETURN circle;

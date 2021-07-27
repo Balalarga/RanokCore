@@ -7,12 +7,12 @@ ISpaceCalculator::ISpaceCalculator(QObject *parent):
     _program(0),
     _batchSize(9)
 {
-    QVector<QColor> gradColors;
-    gradColors.push_back(QColor(255, 255, 0,   20));
-    gradColors.push_back(QColor(0,   255, 162, 20));
-    gradColors.push_back(QColor(0,   0,   255, 20));
-    gradColors.push_back(QColor(255, 145, 0,   20));
-    gradColors.push_back(QColor(214, 0,   255, 20));
+    std::vector<Color> gradColors;
+    gradColors.push_back(Color::fromUint(255, 255, 0,   20));
+    gradColors.push_back(Color::fromUint(0,   255, 162, 20));
+    gradColors.push_back(Color::fromUint(0,   0,   255, 20));
+    gradColors.push_back(Color::fromUint(255, 145, 0,   20));
+    gradColors.push_back(Color::fromUint(214, 0,   255, 20));
     SetMImageColorGradiend(gradColors);
 
     QThread::setTerminationEnabled(true);
@@ -68,24 +68,24 @@ CalculatorMode ISpaceCalculator::GetCalculatorMode()
     return _mode;
 }
 
-QColor ISpaceCalculator::GetMImageColor(double value)
+Color ISpaceCalculator::GetMImageColor(double value)
 {
     value = (1. + value)/2.;
     unsigned uValue = UINT_MAX*value;
     return _mimageColorModel.GetColor(uValue);
 }
 
-void ISpaceCalculator::SetMImageColorGradiend(const QVector<QColor> &colors)
+void ISpaceCalculator::SetMImageColorGradiend(const std::vector<Color> &colors)
 {
     _mimageColorModel.SetColors(colors);
 }
 
-QColor ISpaceCalculator::GetModelColor()
+Color ISpaceCalculator::GetModelColor()
 {
     return _modelColor;
 }
 
-void ISpaceCalculator::SetModelColor(const QColor &newDefaultColor)
+void ISpaceCalculator::SetModelColor(const Color &newDefaultColor)
 {
     _modelColor = newDefaultColor;
 }
