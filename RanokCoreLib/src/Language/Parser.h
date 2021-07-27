@@ -11,7 +11,7 @@ class Parser
 public:
     Parser();
 
-    void SetFile(const std::string& sourceFile);
+    bool SetFile(const std::string& sourceFile);
     void SetText(const std::string& source);
 
     Program* GetProgram(SymbolTable *baseTable = nullptr);

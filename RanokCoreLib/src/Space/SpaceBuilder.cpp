@@ -8,6 +8,12 @@ SpaceBuilder::SpaceBuilder()
 
 }
 
+SpaceBuilder &SpaceBuilder::Instance()
+{
+    static SpaceBuilder builder;
+    return builder;
+}
+
 SpaceBuilder::~SpaceBuilder()
 {
     DeleteSpace();

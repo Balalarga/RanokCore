@@ -16,19 +16,19 @@ Parser::Parser()
 }
 
 
-void Parser::SetFile(const std::string &sourceFile)
+bool Parser::SetFile(const std::string &sourceFile)
 {
     fstream file(sourceFile);
     if(!file)
-    {
-        cout<<"Parser: couldn't open file"<<endl;
-        return;
-    }
+        return false;
+
     stringstream converter;
     converter<<file.rdbuf();
 
     file.close();
     SetText(converter.str());
+
+    return true;
 }
 
 void Parser::SetText(const std::string &source)

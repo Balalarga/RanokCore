@@ -2,18 +2,17 @@
 #define OPENCLCALCULATOR_H
 
 #include "ISpaceCalculator.h"
-#include <QObject>
 
 class OpenclCalculator : public ISpaceCalculator
 {
 public:
-    explicit OpenclCalculator(QObject *parent = nullptr);
+    OpenclCalculator(std::function<void(CalculatorMode, int, int)> func);
     ~OpenclCalculator();
 
     void CalcModel(SpaceData* space, int start = 0, int end = 0) override;
     void CalcMImage(SpaceData* space, int start = 0, int end = 0) override;
 
-    QString CreateOpenclSource(const Program& program);
+    std::string CreateOpenclSource(const Program& program);
     int GetLocalGroupSize();
 
 private:
@@ -26,7 +25,7 @@ private:
     cl_int           ret;// сюда будут записываться сообщения об ошибках
     cl_program       program = 0;
     cl_kernel        kernel = 0;
-    QString          prevSource;
+    std::string      prevSource;
 
     int localGroupSize = 0;
 };

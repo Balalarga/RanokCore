@@ -1,23 +1,22 @@
 #include "OpenclCalculator.h"
-#include <QDebug>
 #include <sstream>
 #include <CL/cl.h>
 using namespace std;
 
-OpenclCalculator::OpenclCalculator(QObject *parent):
-    ISpaceCalculator(parent)
+OpenclCalculator::OpenclCalculator(std::function<void (CalculatorMode, int, int)> func):
+    ISpaceCalculator(func)
 {
     ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
     if(ret != CL_SUCCESS)
-        qDebug()<<Qt::endl<<ret<<Qt::endl;
-    qDebug()<<"platform_id: "<<platform_id;
+        cout<<ret<<endl;
+    cout<<"platform_id: "<<platform_id<<endl;
     ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1,
                          &device_id, &ret_num_devices);
     if(ret != CL_SUCCESS)
-        qDebug()<<Qt::endl<<ret;
-    qDebug()<<"device_id: "<<device_id;
+        cout<<ret<<endl;
+    cout<<"device_id: "<<device_id<<endl;
     context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
-    qDebug()<<"context: "<<context;
+    cout<<"context: "<<context<<endl;
     command_queue = clCreateCommandQueueWithProperties(context, device_id, 0, &ret);
 }
 
@@ -33,7 +32,7 @@ OpenclCalculator::~OpenclCalculator()
     ret = clReleaseContext(context);
 }
 
-QString OpenclCalculator::CreateOpenclSource(const Program& program)
+string OpenclCalculator::CreateOpenclSource(const Program& program)
 {
     stringstream result;
     result << R"(
@@ -180,7 +179,7 @@ kernel void __calculateMImage(global double *result,
 }
 
 )";
-    return QString::fromStdString(result.str());
+    return result.str();
 }
 
 int OpenclCalculator::GetLocalGroupSize()
@@ -195,13 +194,12 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
         return;
 
     auto prog = GetProgram();
-    QString source = CreateOpenclSource(*prog);
-    QByteArray ba = source.toLocal8Bit();
-    const char* src_str = ba.data();
+    std::string source = CreateOpenclSource(*prog);
+    const char* src_str = source.data();
 
     if(source != prevSource)
     {
-        if(!prevSource.isEmpty())
+        if(!prevSource.empty())
         {
             ret = clReleaseProgram(program);
             ret = clReleaseKernel(kernel);
@@ -211,7 +209,7 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
                                             (const char **)&src_str, NULL, &ret);
         if (!program)
         {
-            qDebug()<<"Error: Failed to create compute program!";
+            cout<<"Error: Failed to create compute program!"<<endl;
             return;
         }
         ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
@@ -220,10 +218,10 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
             size_t len;
             char buffer[2048];
 
-            qDebug()<<"Error: Failed to build program executable!";
+            cout<<"Error: Failed to build program executable!"<<endl;
             clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG,
                                   sizeof(buffer), buffer, &len);
-            qDebug()<<buffer;
+            cout<<buffer<<endl;
             return;
         }
         prevSource = source;
@@ -232,7 +230,7 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
     kernel = clCreateKernel(program, "__calcualteModel", &ret);
     if (!kernel || ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to create compute kernel!";
+        cout<<"Error: Failed to create compute kernel!"<<endl;
         return;
     }
 
@@ -244,7 +242,7 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
                                         (end-start) * sizeof(cl_int), NULL, &ret);
     if (!out_mem_obj)
     {
-        qDebug()<<"Error: Failed to allocate device memory!";
+        cout<<"Error: Failed to allocate device memory!"<<endl;
         return;
     }
 
@@ -256,7 +254,7 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
     ret = clSetKernelArg(kernel, 5, sizeof(cl_float3), &space->pointHalfSize);
     if (ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to set kernel arguments! "<<ret;
+        cout<<"Error: Failed to set kernel arguments! "<<ret<<endl;
         clReleaseMemObject(out_mem_obj);
         return;
     }
@@ -268,7 +266,7 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
                                    sizeof(local), &local, NULL);
     if (ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to retrieve kernel work group info! " << ret;
+        cout<<"Error: Failed to retrieve kernel work group info! " << ret<<endl;
         clReleaseMemObject(out_mem_obj);
         return;
     }
@@ -283,7 +281,7 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
                                  &global, &local, 0, NULL, NULL);
     if (ret)
     {
-        qDebug()<<"Error: Failed to execute kernel!\n";
+        cout<<"Error: Failed to execute kernel!"<<endl;
         clReleaseMemObject(out_mem_obj);
         return;
     }
@@ -293,12 +291,12 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
                               (end-start) * sizeof(int), &space->zoneData->At(start), 0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to read output array! "<<ret;
+        cout<<"Error: Failed to read output array! "<<ret<<endl;
         clReleaseMemObject(out_mem_obj);
         return;
     }
     ret = clReleaseMemObject(out_mem_obj);
-    emit ComputedModel(start, end);
+    Complete(start, end);
 }
 
 void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
@@ -307,13 +305,12 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
         return;
 
     auto prog = GetProgram();
-    QString source = CreateOpenclSource(*prog);
-    QByteArray ba = source.toLocal8Bit();
-    const char* src_str = ba.data();
+    string source = CreateOpenclSource(*prog);
+    const char* src_str = source.data();
 
     if(source != prevSource)
     {
-        if(!prevSource.isEmpty())
+        if(!prevSource.empty())
         {
             ret = clReleaseProgram(program);
             ret = clReleaseKernel(kernel);
@@ -323,7 +320,7 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
                                             (const char **)&src_str, NULL, &ret);
         if (!program)
         {
-            qDebug()<<"Error: Failed to create compute program!";
+            cout<<"Error: Failed to create compute program!"<<endl;
             return;
         }
         ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
@@ -332,10 +329,10 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
             size_t len;
             char buffer[2048];
 
-            qDebug()<<"Error: Failed to build program executable!";
+            cout<<"Error: Failed to build program executable!"<<endl;
             clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG,
                                   sizeof(buffer), buffer, &len);
-            qDebug()<<buffer;
+            cout<<buffer<<endl;
             return;
         }
         prevSource = source;
@@ -344,7 +341,7 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
     kernel = clCreateKernel(program, "__calculateMImage", &ret);
     if (!kernel || ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to create compute kernel!";
+        cout<<"Error: Failed to create compute kernel!"<<endl;
         return;
     }
 
@@ -356,7 +353,7 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
                                         (end-start) * 5 * sizeof(cl_double), NULL, &ret);
     if (!out_mem_obj)
     {
-        qDebug()<<"Error: Failed to allocate device memory!";
+        cout<<"Error: Failed to allocate device memory!"<<endl;
         return;
     }
 
@@ -368,7 +365,7 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
     ret = clSetKernelArg(kernel, 5, sizeof(cl_float3), &space->pointHalfSize);
     if (ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to set kernel arguments! "<<ret;
+        cout<<"Error: Failed to set kernel arguments! "<<ret<<endl;
         ret = clReleaseMemObject(out_mem_obj);
         return;
     }
@@ -380,7 +377,7 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
                                    sizeof(local), &local, NULL);
     if (ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to retrieve kernel work group info! " << ret;
+        cout<<"Error: Failed to retrieve kernel work group info! " << ret<<endl;
         clReleaseMemObject(out_mem_obj);
         return;
     }
@@ -395,7 +392,7 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
                                  &global, &local, 0, NULL, NULL);
     if (ret)
     {
-        qDebug()<<"Error: Failed to execute kernel!\n";
+        cout<<"Error: Failed to execute kernel!"<<endl;
         clReleaseMemObject(out_mem_obj);
         return;
     }
@@ -406,10 +403,10 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
                               0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
-        qDebug()<<"Error: Failed to read output array! "<<ret;
+        cout<<"Error: Failed to read output array! "<<ret<<endl;
         clReleaseMemObject(out_mem_obj);
         return;
     }
     ret = clReleaseMemObject(out_mem_obj);
-    emit ComputedMimage(start, end);
+    Complete(start, end);
 }

@@ -1,7 +1,8 @@
 #include "ISpaceCalculator.h"
+using namespace std;
 
-ISpaceCalculator::ISpaceCalculator(QObject *parent):
-    QThread(parent),
+ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int)> callback):
+    _finishFunction(callback),
     _mode(CalculatorMode::Model),
     _modelColor({255, 255, 255, 20}),
     _program(0),
@@ -14,17 +15,18 @@ ISpaceCalculator::ISpaceCalculator(QObject *parent):
     gradColors.push_back(Color::fromUint(255, 145, 0,   20));
     gradColors.push_back(Color::fromUint(214, 0,   255, 20));
     SetMImageColorGradiend(gradColors);
-
-    QThread::setTerminationEnabled(true);
 }
 
-void ISpaceCalculator::run()
+void ISpaceCalculator::Run()
 {
     if(_program)
     {
         auto space = SpaceBuilder::Instance().GetSpace();
         if(!space)
+        {
+            cout<<"[ISpaceCalculator] Space is null"<<endl;
             return;
+        }
 
         auto theRun = [this](SpaceData* space, int start, int end){
 
@@ -52,10 +54,14 @@ void ISpaceCalculator::run()
         }
         else
             theRun(space, 0, 0);
-        qDebug()<<"Complete";
     }
     else
-        qDebug()<<"[ISpaceCalculator] Program is null";
+        cout<<"[ISpaceCalculator] Program is null"<<endl;
+}
+
+void ISpaceCalculator::Complete(int start, int end)
+{
+    _finishFunction(_mode, start, end);
 }
 
 void ISpaceCalculator::SetCalculatorMode(CalculatorMode mode)

@@ -3,7 +3,6 @@
 
 
 #include <vector>
-#include <QDebug>
 
 #include <CL/cl.h>
 
@@ -145,7 +144,7 @@ struct SpaceData
 class SpaceBuilder
 {
 public:
-    static SpaceBuilder& Instance(){ static SpaceBuilder builder; return builder; }
+    static SpaceBuilder& Instance();
 
     ~SpaceBuilder();
 

@@ -1,11 +1,11 @@
 #ifndef ISPACECALCULATOR_H
 #define ISPACECALCULATOR_H
 
-#include <QThread>
 #include "Color.h"
 #include "../SpaceBuilder.h"
 #include "Language/Program.h"
 #include "LinearGradientModel.h"
+#include <functional>
 
 
 enum class CalculatorMode
@@ -13,12 +13,11 @@ enum class CalculatorMode
     Model, Mimage
 };
 
-class ISpaceCalculator : public QThread
+class ISpaceCalculator
 {
-    Q_OBJECT
 public:
-    explicit ISpaceCalculator(QObject *parent = nullptr);
-    virtual ~ISpaceCalculator(){ quit(); }
+    ISpaceCalculator(std::function<void(CalculatorMode, int, int)> callback);
+    virtual ~ISpaceCalculator(){}
 
     virtual void CalcModel(SpaceData* space, int start = 0, int end = 0) = 0;
     virtual void CalcMImage(SpaceData* space, int start = 0, int end = 0) = 0;
@@ -38,16 +37,17 @@ public:
     void SetBatchSize(int size);
     int GetBatchSize();
 
-signals:
-    void ComputedModel(int start, int end);
-    void ComputedMimage(int start, int end);
+    void SetDoneCallback(std::function<void(CalculatorMode, int, int)> func);
 
+    void Run();
 
 protected:
-    void run() override;
+    void Complete(int start, int end);
 
 
 private:
+    std::function<void(CalculatorMode, int, int)> _finishFunction;
+
     CalculatorMode _mode;
 
     Color _modelColor;

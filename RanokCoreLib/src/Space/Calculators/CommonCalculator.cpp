@@ -1,7 +1,7 @@
 #include "CommonCalculator.h"
 
-CommonCalculator::CommonCalculator(QObject *parent):
-    ISpaceCalculator(parent)
+CommonCalculator::CommonCalculator(std::function<void (CalculatorMode, int, int)> func):
+    ISpaceCalculator(func)
 {
 
 }
@@ -14,7 +14,7 @@ void CommonCalculator::CalcModel(SpaceData* space, int start, int end)
     auto program = GetProgram();
     cl_float3 halfSize = space->pointHalfSize;
     constexpr unsigned verticesSize = 8;
-    QVector<double> values(8);
+    std::vector<double> values(8);
     cl_double3 vertices[verticesSize];
     cl_float3 point;
 
@@ -37,7 +37,7 @@ void CommonCalculator::CalcModel(SpaceData* space, int start, int end)
             values[i] = program->Compute(vertices[i]);
         space->zoneData->At(i) = GetZone(values);
     }
-    emit ComputedModel(start, end);
+    Complete(start, end);
 }
 
 void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
@@ -47,12 +47,12 @@ void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
 
     auto program = GetProgram();
     cl_float3 size = space->pointSize;
-    QVector<double> wv(4);
-    QVector<QVector<double>> a;
-    QVector<QVector<double>> b;
-    QVector<QVector<double>> c;
-    QVector<QVector<double>> d;
-    QVector<QVector<double>> f;
+    std::vector<double> wv(4);
+    std::vector<std::vector<double>> a;
+    std::vector<std::vector<double>> b;
+    std::vector<std::vector<double>> c;
+    std::vector<std::vector<double>> d;
+    std::vector<std::vector<double>> f;
     cl_float3 point;
 
     if(end == 0)
@@ -111,17 +111,17 @@ void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
         space->mimageData->At(i).Cw = detD/div;
         space->mimageData->At(i).Ct = detF/div;
     }
-    emit ComputedMimage(start, end);
+    Complete(start, end);
 }
 
-double CommonCalculator::DeterminantOfMatrix(QVector<QVector<double>> &mat,
+double CommonCalculator::DeterminantOfMatrix(std::vector<std::vector<double>> &mat,
                                               int n)
 {
     if (n == 1)
         return mat[0][0];
 
     double D = 0;
-    QVector<QVector<double>> temp(n, QVector<double>(n));
+    std::vector<std::vector<double>> temp(n, std::vector<double>(n));
     int sign = 1;
     for (int f = 0; f < n; f++)
     {
@@ -133,8 +133,8 @@ double CommonCalculator::DeterminantOfMatrix(QVector<QVector<double>> &mat,
     return D;
 }
 
-void CommonCalculator::GetCofactor(QVector<QVector<double> > &mat,
-                                   QVector<QVector<double> > &temp,
+void CommonCalculator::GetCofactor(std::vector<std::vector<double> > &mat,
+                                   std::vector<std::vector<double> > &temp,
                                    int p, int q, int n)
 {
     int i = 0, j = 0;
@@ -155,7 +155,7 @@ void CommonCalculator::GetCofactor(QVector<QVector<double> > &mat,
     }
 }
 
-int CommonCalculator::GetZone(const QVector<double> &values)
+int CommonCalculator::GetZone(const std::vector<double> &values)
 {
     bool plus = false;
     bool zero = false;
