@@ -52,8 +52,8 @@ int main(int argc, char** argv)
     arg0 = argv[0];
     if(argc != 6 && argc != 7)
           ArgsError();
-    string sourcePath = CharToLower(argv[1]);
-    string resultPath = CharToLower(argv[2]);
+    string sourcePath = argv[1];
+    string resultPath = argv[2];
     string device     = CharToLower(argv[3]);
     string mode       = CharToLower(argv[4]);
     int    depth      = stoi(argv[5]);
