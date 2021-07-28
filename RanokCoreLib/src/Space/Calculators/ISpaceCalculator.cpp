@@ -1,4 +1,5 @@
 #include "ISpaceCalculator.h"
+#include <climits>
 using namespace std;
 
 ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int)> callback):
