@@ -2,6 +2,7 @@
 #define LANGFUNCTIONS_H
 
 #include <map>
+#include <string>
 
 typedef double(*FunctionRef)(double);
 typedef double(*BinaryOp)(double, double);
