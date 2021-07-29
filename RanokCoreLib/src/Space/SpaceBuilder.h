@@ -1,17 +1,32 @@
 #ifndef SPACEBUILDER_H
 #define SPACEBUILDER_H
 
-
 #include <vector>
-
 #include <CL/cl.h>
+
+class MemoryWorker
+{
+public:
+    MemoryWorker(){}
+    virtual ~MemoryWorker(){}
+    virtual void AllocateMemory(cl_uint3 size) = 0;
+    virtual void AddData(int id) = 0;
+};
+
+class CommonMemoryWorker: public MemoryWorker
+{
+public:
+    CommonMemoryWorker(){}
+};
+
 
 template<class T>
 struct CubeMatrix
 {
-    CubeMatrix(cl_uint3 size):
+    CubeMatrix(cl_uint3 size, MemoryWorker* worker = nullptr):
         _size(size),
-        _rawPtr(new T[size.x*size.y*size.z])
+        _rawPtr(new T[size.x*size.y*size.z]),
+        _worker(worker)
     {
     }
     ~CubeMatrix()
@@ -39,6 +54,7 @@ struct CubeMatrix
 private:
     T* _rawPtr = 0;
     cl_uint3 _size;
+    MemoryWorker* _worker;
 };
 
 
