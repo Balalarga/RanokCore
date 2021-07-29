@@ -19,8 +19,8 @@ public:
     ISpaceCalculator(std::function<void(CalculatorMode, int, int)> callback);
     virtual ~ISpaceCalculator(){}
 
-    virtual void CalcModel(SpaceData* space, int start = 0, int end = 0) = 0;
-    virtual void CalcMImage(SpaceData* space, int start = 0, int end = 0) = 0;
+    virtual void CalcModel(int start = 0, int end = 0) = 0;
+    virtual void CalcMImage(int start = 0, int end = 0) = 0;
 
     void SetCalculatorMode(CalculatorMode mode);
     CalculatorMode GetCalculatorMode();
@@ -34,12 +34,13 @@ public:
     void SetProgram(Program *program);
     Program* GetProgram();
 
-    void SetBatchSize(int size);
-    int GetBatchSize();
-
     void SetDoneCallback(std::function<void(CalculatorMode, int, int)> func);
+    int GetBatchSize();
+    void SetBatchSize(int size);
 
     void Run();
+
+
 
 protected:
     void Complete(int start, int end);
@@ -48,14 +49,13 @@ protected:
 private:
     std::function<void(CalculatorMode, int, int)> _finishFunction;
 
-    CalculatorMode _mode;
-
     Color _modelColor;
+    Program* _program;
+    CalculatorMode _mode;
     LinearGradientModel _mimageColorModel;
 
-    Program* _program;
-
     int _batchSize;
+
 };
 
 #endif // ISPACECALCULATOR_H

@@ -9,8 +9,8 @@ public:
     OpenclCalculator(std::function<void(CalculatorMode, int, int)> func);
     ~OpenclCalculator();
 
-    void CalcModel(SpaceData* space, int start = 0, int end = 0) override;
-    void CalcMImage(SpaceData* space, int start = 0, int end = 0) override;
+    void CalcModel(int start = 0, int end = 0) override;
+    void CalcMImage(int start = 0, int end = 0) override;
 
     std::string CreateOpenclSource(const Program& program);
     int GetLocalGroupSize();

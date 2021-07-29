@@ -1,6 +1,7 @@
 #ifndef SPACEBUILDER_H
 #define SPACEBUILDER_H
 
+#include <stdexcept>
 #include <vector>
 #include <CL/cl.h>
 
@@ -14,104 +15,16 @@ struct MimageData
     double Ct = -10;
 };
 
-struct SpaceData
-{
-    SpaceData(cl_uint3 spaceUnits,
-              cl_float3 startPoint,
-              cl_float3 pointSize):
-        spaceUnits(spaceUnits),
-        pointSize(pointSize),
-        mimageBuffer(nullptr),
-        zoneBuffer(nullptr),
-        oldBufferSize(0)
-    {
-        pointHalfSize = {pointSize.x/2.f,
-                         pointSize.y/2.f,
-                         pointSize.z/2.f};
-        this->startPoint.x = startPoint.x + pointHalfSize.x;
-        this->startPoint.y = startPoint.y + pointHalfSize.y;
-        this->startPoint.z = startPoint.z + pointHalfSize.z;
-    }
-    ~SpaceData()
-    {
-        DeleteZoneData();
-        DeleteMimageData();
-    }
-    void CreateMimageData(int bufferSize)
-    {
-        DeleteZoneData();
-        if(mimageBuffer)
-        {
-            if(oldBufferSize == bufferSize)
-                return;
-            DeleteMimageData();
-        }
-        mimageBuffer = new MimageData[bufferSize];
-        oldBufferSize = bufferSize;
-    }
-    void CreateZoneData(int bufferSize)
-    {
-        DeleteMimageData();
-        if(zoneBuffer)
-        {
-            if(oldBufferSize == bufferSize)
-                return;
-            DeleteZoneData();
-        }
-        zoneBuffer = new int[bufferSize];
-        oldBufferSize = bufferSize;
-    }
-    void DeleteMimageData()
-    {
-        if(mimageBuffer)
-        {
-            delete mimageBuffer;
-            mimageBuffer = nullptr;
-        }
-    }
-    void DeleteZoneData()
-    {
-        if(zoneBuffer)
-        {
-            delete zoneBuffer;
-            zoneBuffer = nullptr;
-        }
-    }
-    int GetSpaceSize()
-    {
-        return spaceUnits.x*spaceUnits.y*spaceUnits.z;
-    }
-    int GetBufferSize()
-    {
-        return oldBufferSize;
-    }
-    cl_float3 GetPointCoords(int i)
-    {
-        cl_float3 pos;
-        pos.x = startPoint.x + pointSize.x * (i / ( spaceUnits.z * spaceUnits.y ));
-        pos.y = startPoint.y + pointSize.y * (( i / spaceUnits.z ) % spaceUnits.y);
-        pos.z = startPoint.z + pointSize.z * (i % spaceUnits.z);
-        return pos;
-    }
-
-    cl_uint3  spaceUnits;
-    cl_float3 startPoint;
-    cl_float3 pointSize;
-    cl_float3 pointHalfSize;
-
-    int         oldBufferSize;
-    MimageData* mimageBuffer;
-    int*        zoneBuffer;
-};
-
 
 class SpaceManager
 {
 public:
-    enum class BufferType
-    { ZoneBuffer, MimageBuffer };
+    enum class BufferType { ZoneBuffer, MimageBuffer };
+
     static SpaceManager& Self();
+    static void Destroy();
     ~SpaceManager();
+
 
     void InitSpace(const std::pair<double, double> &dim1,
                            const std::pair<double, double> &dim2,
@@ -122,10 +35,29 @@ public:
                            const std::pair<double, double> &dim3,
                            const int &recur);
 
-    void ActivateBuffer(BufferType buffer, int bufferSize);
+
+    void ActivateBuffer(BufferType buffer);
+
+    /// Setup cpu ram memory usage
     void ResetBufferSize(int size = 0);
     int GetBufferSize();
+    int GetSpaceSize();
 
+    inline void AddMimageData(const int& id, const MimageData& data){ _mimageBuffer[id] = data; }
+    inline void AddZoneData(const int& id, const int& data){
+        if(id >= _bufferSize )
+            throw std::runtime_error("buffer out of range");
+        else
+            _zoneBuffer[id] = data;
+    }
+    inline int* GetZoneBuffer(){ return _zoneBuffer; }
+    inline MimageData* GetMimageBuffer(){ return _mimageBuffer; }
+
+    cl_uint3 GetSpaceUnits();
+    cl_float3 GetPointCoords(int i);
+    cl_float3 GetStartPoint();
+    cl_float3 GetPointSize();
+    cl_float3 GetHalfPointSize();
 
 protected:
     void DeleteMimageBuffer();
@@ -135,6 +67,7 @@ protected:
 
 private:
     SpaceManager();
+    static SpaceManager* _selfInstance;
 
     cl_uint3  _spaceUnits;
     cl_float3 _startPoint;

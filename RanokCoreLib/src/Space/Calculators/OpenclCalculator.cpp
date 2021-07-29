@@ -188,10 +188,9 @@ int OpenclCalculator::GetLocalGroupSize()
 }
 
 
-void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
+void OpenclCalculator::CalcModel(int start, int end)
 {
-    if(!space)
-        return;
+    SpaceManager& space = SpaceManager::Self();
 
     auto prog = GetProgram();
     std::string source = CreateOpenclSource(*prog);
@@ -234,9 +233,6 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
         return;
     }
 
-    if(end == 0)
-        end = space->GetSize();
-
     // Create gpu buffers
     cl_mem out_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
                                         (end-start) * sizeof(cl_int), NULL, &ret);
@@ -246,12 +242,17 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
         return;
     }
 
+    cl_uint3 spaceUnits = space.GetSpaceUnits();
+    cl_float3 startPoint = space.GetStartPoint();
+    cl_float3 pointSize = space.GetPointSize();
+    cl_float3 pointHalfSize = space.GetHalfPointSize();
+
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
     ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &start);
-    ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &space->spaceUnits);
-    ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &space->startPoint);
-    ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &space->pointSize);
-    ret = clSetKernelArg(kernel, 5, sizeof(cl_float3), &space->pointHalfSize);
+    ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &spaceUnits);
+    ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &startPoint);
+    ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &pointSize);
+    ret = clSetKernelArg(kernel, 5, sizeof(cl_float3), &pointHalfSize);
     if (ret != CL_SUCCESS)
     {
         cout<<"Error: Failed to set kernel arguments! "<<ret<<endl;
@@ -288,7 +289,7 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
     clFinish(command_queue);
 
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
-                              (end-start) * sizeof(int), &space->zoneData->At(start), 0, NULL, NULL);
+                              (end-start) * sizeof(int), (void*)space.GetZoneBuffer(), 0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
         cout<<"Error: Failed to read output array! "<<ret<<endl;
@@ -296,13 +297,11 @@ void OpenclCalculator::CalcModel(SpaceData* space, int start, int end)
         return;
     }
     ret = clReleaseMemObject(out_mem_obj);
-    Complete(start, end);
 }
 
-void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
+void OpenclCalculator::CalcMImage(int start, int end)
 {
-    if(!space)
-        return;
+    SpaceManager& space = SpaceManager::Self();
 
     auto prog = GetProgram();
     string source = CreateOpenclSource(*prog);
@@ -345,9 +344,6 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
         return;
     }
 
-    if(end == 0)
-        end = space->GetSize();
-
     // Create gpu buffers
     cl_mem out_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
                                         (end-start) * 5 * sizeof(cl_double), NULL, &ret);
@@ -357,12 +353,17 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
         return;
     }
 
+    cl_uint3 spaceUnits = space.GetSpaceUnits();
+    cl_float3 startPoint = space.GetStartPoint();
+    cl_float3 pointSize = space.GetPointSize();
+    cl_float3 pointHalfSize = space.GetHalfPointSize();
+
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
     ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &start);
-    ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &space->spaceUnits);
-    ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &space->startPoint);
-    ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &space->pointSize);
-    ret = clSetKernelArg(kernel, 5, sizeof(cl_float3), &space->pointHalfSize);
+    ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &spaceUnits);
+    ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &startPoint);
+    ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &pointSize);
+    ret = clSetKernelArg(kernel, 5, sizeof(cl_float3), &pointHalfSize);
     if (ret != CL_SUCCESS)
     {
         cout<<"Error: Failed to set kernel arguments! "<<ret<<endl;
@@ -399,7 +400,7 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
     clFinish(command_queue);
 
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
-                              (end-start) * 5 * sizeof(cl_double), &space->mimageData->At(start),
+                              (end-start) * 5 * sizeof(cl_double), (void*)space.GetMimageBuffer(),
                               0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
@@ -408,5 +409,4 @@ void OpenclCalculator::CalcMImage(SpaceData* space, int start, int end)
         return;
     }
     ret = clReleaseMemObject(out_mem_obj);
-    Complete(start, end);
 }

@@ -6,8 +6,7 @@ ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int)
     _finishFunction(callback),
     _mode(CalculatorMode::Model),
     _modelColor({255, 255, 255, 20}),
-    _program(0),
-    _batchSize(9)
+    _program(0)
 {
     std::vector<Color> gradColors;
     gradColors.push_back(Color::fromUint(255, 255, 0,   20));
@@ -22,39 +21,39 @@ void ISpaceCalculator::Run()
 {
     if(_program)
     {
-        auto space = SpaceBuilder::Instance().GetSpace();
-        if(!space)
-        {
-            cout<<"[ISpaceCalculator] Space is null"<<endl;
-            return;
-        }
+        SpaceManager& space = SpaceManager::Self();
 
-        auto theRun = [this](SpaceData* space, int start, int end){
+        if(_mode == CalculatorMode::Model)
+            space.ActivateBuffer(SpaceManager::BufferType::ZoneBuffer);
+        else
+            space.ActivateBuffer(SpaceManager::BufferType::MimageBuffer);
+
+        auto theRun = [this, &space](int start, int end){
 
             if(_mode == CalculatorMode::Model)
-            {
-                space->CreateZoneData(_batchSize);
-                CalcModel(space, start, end);
-            }
+                CalcModel(start, end);
             else
-            {
-                space->CreateMimageData(_batchSize);
-                CalcMImage(space, start, end);
-            }
+                CalcMImage(start, end);
         };
 
-        if(_batchSize != 0)
+        int start = 0;
+        while(start + space.GetBufferSize() < space.GetSpaceSize())
         {
-            int start = 0;
-            while(start + _batchSize < space->GetBufferSize())
+            while(start + _batchSize < space.GetBufferSize())
             {
-                theRun(space, start, start+_batchSize);
+                theRun(start, start + _batchSize);
                 start += _batchSize;
             }
-            theRun(space, start, space->GetBufferSize());
+            start -= _batchSize;
+            theRun(start, space.GetBufferSize());
+            Complete(start, start + space.GetBufferSize());
+            start += space.GetBufferSize() - _batchSize;
+
+            if(start > space.GetSpaceSize())
+                start -= space.GetBufferSize();
         }
-        else
-            theRun(space, 0, 0);
+        theRun(start, space.GetSpaceSize());
+        Complete(start, space.GetSpaceSize());
     }
     else
         cout<<"[ISpaceCalculator] Program is null"<<endl;
@@ -107,12 +106,12 @@ Program *ISpaceCalculator::GetProgram()
     return _program;
 }
 
-void ISpaceCalculator::SetBatchSize(int size)
-{
-    _batchSize = size;
-}
-
 int ISpaceCalculator::GetBatchSize()
 {
     return _batchSize;
+}
+
+void ISpaceCalculator::SetBatchSize(int size)
+{
+    _batchSize = size;
 }

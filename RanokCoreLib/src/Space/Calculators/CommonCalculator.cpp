@@ -6,24 +6,23 @@ CommonCalculator::CommonCalculator(std::function<void (CalculatorMode, int, int)
 
 }
 
-void CommonCalculator::CalcModel(SpaceData* space, int start, int end)
+
+void CommonCalculator::CalcModel(int start, int end)
 {
-    if(!space)
-        return;
+    SpaceManager& space = SpaceManager::Self();
 
     auto program = GetProgram();
-    cl_float3 halfSize = space->pointHalfSize;
+    cl_float3 halfSize = space.GetHalfPointSize();
     constexpr unsigned verticesSize = 8;
     std::vector<double> values(8);
     cl_double3 vertices[verticesSize];
     cl_float3 point;
 
-    if(end == 0)
-        end = space->GetBufferSize();
-
-    for(int i = start; i < end; ++i)
+    int count = end-start;
+    int id = start;
+    for(int i = 0; i < count; ++i)
     {
-        point = space->GetPointCoords(i);
+        point = space.GetPointCoords(id);
         vertices[0] = { point.x + halfSize.x, point.y + halfSize.y, point.z + halfSize.z };
         vertices[1] = { point.x + halfSize.x, point.y + halfSize.y, point.z - halfSize.z };
         vertices[2] = { point.x + halfSize.x, point.y - halfSize.y, point.z + halfSize.z };
@@ -35,18 +34,16 @@ void CommonCalculator::CalcModel(SpaceData* space, int start, int end)
 
         for(size_t i = 0; i < verticesSize; i++)
             values[i] = program->Compute(vertices[i]);
-        space->zoneBuffer[i] = GetZone(values);
+        space.AddZoneData(i, GetZone(values));
     }
-    Complete(start, end);
 }
 
-void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
+void CommonCalculator::CalcMImage(int start, int end)
 {
-    if(!space)
-        return;
+    SpaceManager& space = SpaceManager::Self();
 
     auto program = GetProgram();
-    cl_float3 size = space->pointSize;
+    cl_float3 size = space.GetPointSize();
     std::vector<double> wv(4);
     std::vector<std::vector<double>> a;
     std::vector<std::vector<double>> b;
@@ -56,11 +53,11 @@ void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
     cl_float3 point;
 
     if(end == 0)
-        end = space->GetBufferSize();
+        end = space.GetBufferSize();
 
     for(int i = start; i < end; ++i)
     {
-        point = space->GetPointCoords(i);
+        point = space.GetPointCoords(i);
         wv[0] = program->Compute({point.x,        point.y,        point.z       });
         wv[1] = program->Compute({point.x+size.x, point.y,        point.z       });
         wv[2] = program->Compute({point.x,        point.y+size.y, point.z       });
@@ -104,14 +101,12 @@ void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
         double detF = DeterminantOfMatrix(f, 4);
         double div = sqrt(pow(detA, 2)+pow(detB, 2)+
                           pow(detC, 2)+pow(detD, 2)+pow(detF, 2));
-
-        space->mimageBuffer[i].Cx = detA/div;
-        space->mimageBuffer[i].Cy = -detB/div;
-        space->mimageBuffer[i].Cz = -detC/div;
-        space->mimageBuffer[i].Cw = detD/div;
-        space->mimageBuffer[i].Ct = detF/div;
+        space.AddMimageData(i, {detA/div,
+                                -detB/div,
+                                -detC/div,
+                                detD/div,
+                                detF/div});
     }
-    Complete(start, end);
 }
 
 double CommonCalculator::DeterminantOfMatrix(std::vector<std::vector<double>> &mat,
