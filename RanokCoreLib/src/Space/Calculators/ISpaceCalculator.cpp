@@ -33,12 +33,12 @@ void ISpaceCalculator::Run()
 
             if(_mode == CalculatorMode::Model)
             {
-                space->CreateZoneData();
+                space->CreateZoneData(_batchSize);
                 CalcModel(space, start, end);
             }
             else
             {
-                space->CreateMimageData();
+                space->CreateMimageData(_batchSize);
                 CalcMImage(space, start, end);
             }
         };
@@ -46,12 +46,12 @@ void ISpaceCalculator::Run()
         if(_batchSize != 0)
         {
             int start = 0;
-            while(start + _batchSize < space->GetSize())
+            while(start + _batchSize < space->GetBufferSize())
             {
                 theRun(space, start, start+_batchSize);
                 start += _batchSize;
             }
-            theRun(space, start, space->GetSize());
+            theRun(space, start, space->GetBufferSize());
         }
         else
             theRun(space, 0, 0);

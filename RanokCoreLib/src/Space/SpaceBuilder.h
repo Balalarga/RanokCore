@@ -4,59 +4,6 @@
 #include <vector>
 #include <CL/cl.h>
 
-class MemoryWorker
-{
-public:
-    MemoryWorker(){}
-    virtual ~MemoryWorker(){}
-    virtual void AllocateMemory(cl_uint3 size) = 0;
-    virtual void AddData(int id) = 0;
-};
-
-class CommonMemoryWorker: public MemoryWorker
-{
-public:
-    CommonMemoryWorker(){}
-};
-
-
-template<class T>
-struct CubeMatrix
-{
-    CubeMatrix(cl_uint3 size, MemoryWorker* worker = nullptr):
-        _size(size),
-        _rawPtr(new T[size.x*size.y*size.z]),
-        _worker(worker)
-    {
-    }
-    ~CubeMatrix()
-    {
-        delete[] _rawPtr;
-    }
-    T& At(int x, int y, int z)
-    {
-        return _rawPtr[x*_size.y*_size.z + y*_size.z + z];
-    }
-    T& At(int i)
-    {
-        return _rawPtr[i];
-    }
-
-    cl_uint3 GetSize()
-    {
-        return _size;
-    }
-    T* GetPointer()
-    {
-        return _rawPtr;
-    }
-
-private:
-    T* _rawPtr = 0;
-    cl_uint3 _size;
-    MemoryWorker* _worker;
-};
-
 
 struct MimageData
 {
@@ -67,7 +14,6 @@ struct MimageData
     double Ct = -10;
 };
 
-
 struct SpaceData
 {
     SpaceData(cl_uint3 spaceUnits,
@@ -75,8 +21,9 @@ struct SpaceData
               cl_float3 pointSize):
         spaceUnits(spaceUnits),
         pointSize(pointSize),
-        mimageData(nullptr),
-        zoneData(nullptr)
+        mimageBuffer(nullptr),
+        zoneBuffer(nullptr),
+        oldBufferSize(0)
     {
         pointHalfSize = {pointSize.x/2.f,
                          pointSize.y/2.f,
@@ -90,55 +37,55 @@ struct SpaceData
         DeleteZoneData();
         DeleteMimageData();
     }
-    void CreateMimageData()
+    void CreateMimageData(int bufferSize)
     {
         DeleteZoneData();
-        if(mimageData)
+        if(mimageBuffer)
         {
-            auto oldSize = mimageData->GetSize();
-            if(oldSize.x == spaceUnits.x &&
-                    oldSize.y == spaceUnits.y &&
-                    oldSize.z == spaceUnits.z)
+            if(oldBufferSize == bufferSize)
                 return;
             DeleteMimageData();
         }
-        mimageData = new CubeMatrix<MimageData>(spaceUnits);
+        mimageBuffer = new MimageData[bufferSize];
+        oldBufferSize = bufferSize;
     }
-    void CreateZoneData()
+    void CreateZoneData(int bufferSize)
     {
         DeleteMimageData();
-        if(zoneData)
+        if(zoneBuffer)
         {
-            auto oldSize = zoneData->GetSize();
-            if(oldSize.x == spaceUnits.x &&
-                    oldSize.y == spaceUnits.y &&
-                    oldSize.z == spaceUnits.z)
+            if(oldBufferSize == bufferSize)
                 return;
             DeleteZoneData();
         }
-        zoneData = new CubeMatrix<int>(spaceUnits);
+        zoneBuffer = new int[bufferSize];
+        oldBufferSize = bufferSize;
     }
     void DeleteMimageData()
     {
-        if(mimageData)
+        if(mimageBuffer)
         {
-            delete mimageData;
-            mimageData = nullptr;
+            delete mimageBuffer;
+            mimageBuffer = nullptr;
         }
     }
     void DeleteZoneData()
     {
-        if(zoneData)
+        if(zoneBuffer)
         {
-            delete zoneData;
-            zoneData = nullptr;
+            delete zoneBuffer;
+            zoneBuffer = nullptr;
         }
     }
-    int GetSize()
+    int GetSpaceSize()
     {
         return spaceUnits.x*spaceUnits.y*spaceUnits.z;
     }
-    cl_float3 GetPos(int i)
+    int GetBufferSize()
+    {
+        return oldBufferSize;
+    }
+    cl_float3 GetPointCoords(int i)
     {
         cl_float3 pos;
         pos.x = startPoint.x + pointSize.x * (i / ( spaceUnits.z * spaceUnits.y ));
@@ -147,40 +94,56 @@ struct SpaceData
         return pos;
     }
 
-    cl_uint3   spaceUnits;
+    cl_uint3  spaceUnits;
     cl_float3 startPoint;
     cl_float3 pointSize;
     cl_float3 pointHalfSize;
 
-    CubeMatrix<MimageData>* mimageData;
-    CubeMatrix<int>*        zoneData;
+    int         oldBufferSize;
+    MimageData* mimageBuffer;
+    int*        zoneBuffer;
 };
 
 
-class SpaceBuilder
+class SpaceManager
 {
 public:
-    static SpaceBuilder& Instance();
+    enum class BufferType
+    { ZoneBuffer, MimageBuffer };
+    static SpaceManager& Self();
+    ~SpaceManager();
 
-    ~SpaceBuilder();
-
-    SpaceData* CreateSpace(const std::pair<double, double> &dim1,
+    void InitSpace(const std::pair<double, double> &dim1,
                            const std::pair<double, double> &dim2,
                            const std::pair<double, double> &dim3,
                            const cl_uint3 &units);
-    SpaceData* CreateSpace(const std::pair<double, double> &dim1,
+    void InitSpace(const std::pair<double, double> &dim1,
                            const std::pair<double, double> &dim2,
                            const std::pair<double, double> &dim3,
                            const int &recur);
 
-    SpaceData* GetSpace();
+    void ActivateBuffer(BufferType buffer, int bufferSize);
+    void ResetBufferSize(int size = 0);
+    int GetBufferSize();
 
-    void DeleteSpace();
+
+protected:
+    void DeleteMimageBuffer();
+    void DeleteZoneBuffer();
+    void CreateBuffer(BufferType buffer);
+
 
 private:
-    SpaceBuilder();
+    SpaceManager();
 
-    SpaceData* _space;
+    cl_uint3  _spaceUnits;
+    cl_float3 _startPoint;
+    cl_float3 _pointSize;
+    cl_float3 _pointHalfSize;
+
+    int _bufferSize;
+    MimageData* _mimageBuffer;
+    int*        _zoneBuffer;
 };
 
 #endif // SPACEBUILDER_H

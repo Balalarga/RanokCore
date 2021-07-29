@@ -3,128 +3,115 @@
 
 using namespace std;
 
-SpaceBuilder::SpaceBuilder()
-{
 
-}
-
-SpaceBuilder &SpaceBuilder::Instance()
+SpaceManager &SpaceManager::Self()
 {
-    static SpaceBuilder builder;
+    static SpaceManager builder;
     return builder;
 }
 
-SpaceBuilder::~SpaceBuilder()
+SpaceManager::SpaceManager()
 {
-    DeleteSpace();
+    _bufferSize = 0;
+    _mimageBuffer = 0;
+    _zoneBuffer = 0;
+}
+SpaceManager::~SpaceManager()
+{
+    DeleteZoneBuffer();
+    DeleteMimageBuffer();
 }
 
-
-SpaceData *SpaceBuilder::CreateSpace(const std::pair<double, double> &dim1,
-                                     const std::pair<double, double> &dim2,
-                                     const std::pair<double, double> &dim3,
-                                     const cl_uint3 &units)
+void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
+                             const std::pair<double, double> &dim2,
+                             const std::pair<double, double> &dim3,
+                             const cl_uint3 &units)
 {
-    DeleteSpace();
+    _spaceUnits = units;
 
-    cl_float3 startPoint;
-    startPoint.x = dim1.first;
-    startPoint.y = dim2.first;
-    startPoint.z = dim3.first;
-    cl_float3 pointSize;
-    pointSize.x = (dim1.second-dim1.first)/units.x;
-    pointSize.y = (dim2.second-dim2.first)/units.y;
-    pointSize.z = (dim3.second-dim3.first)/units.z;
-    _space = new SpaceData(units, startPoint, pointSize);
+    _pointSize.x = (dim1.second-dim1.first)/units.x;
+    _pointSize.y = (dim2.second-dim2.first)/units.y;
+    _pointSize.z = (dim3.second-dim3.first)/units.z;
 
-    return _space;
+    _pointHalfSize = {_pointSize.x/2.f,
+                      _pointSize.y/2.f,
+                      _pointSize.z/2.f};
+    _startPoint.x = dim1.first + _pointHalfSize.x;
+    _startPoint.y = dim2.first + _pointHalfSize.y;
+    _startPoint.z = dim3.first + _pointHalfSize.z;
 }
 
-SpaceData* SpaceBuilder::CreateSpace(const std::pair<double, double> &dim1,
-                                     const std::pair<double, double> &dim2,
-                                     const std::pair<double, double> &dim3,
-                                     const int &recur)
+void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
+                             const std::pair<double, double> &dim2,
+                             const std::pair<double, double> &dim3,
+                             const int &recur)
 {
     unsigned depth = pow(2, recur);
-    return CreateSpace(dim1, dim2, dim3, {depth, depth, depth});
+    InitSpace(dim1, dim2, dim3, {depth, depth, depth});
 }
 
-SpaceData *SpaceBuilder::GetSpace()
+void SpaceManager::ActivateBuffer(BufferType buffer, int bufferSize = 0)
 {
-    return _space;
-}
-
-//Linear2dSpaceData *SpaceBuilder::CreateSpace(const std::pair<double, double> &dim1,
-//                                             const std::pair<double, double> &dim2,
-//                                             const Vector2i &step)
-//{
-//    Delete2dSpace();
-//    _data2 = new Linear2dSpaceData(step.x*step.y,
-//                                  {
-//                                      static_cast<float>((dim1.second-dim1.first)/step.x),
-//                                      static_cast<float>((dim2.second-dim2.first)/step.y)
-//                                  });
-//    double x = dim1.first + _data3->pointSize.x/2.;
-//    while(x < dim1.second)
-//    {
-//        double y = dim2.first + _data3->pointSize.y/2.;
-//        while(y < dim2.second)
-//        {
-//            _data2->points.push_back({x, y});
-//            y += _data2->pointSize.y;
-//        }
-//        x += _data2->pointSize.x;
-//    }
-
-//    return _data2;
-//}
-
-//Linear2dSpaceData *SpaceBuilder::CreateSpace(const std::pair<double, double> &dim1,
-//                                             const std::pair<double, double> &dim2,
-//                                             const int &recur)
-//{
-//    int depth = pow(2, recur);
-//    return CreateSpace(dim1, dim2, depth);
-//}
-
-//Linear1dSpaceData *SpaceBuilder::CreateSpace(const std::pair<double, double> &dim1,
-//                                             const double &step)
-//{
-//    _data1 = new Linear1dSpaceData(step,static_cast<float>((dim1.second-dim1.first)/step));
-
-//    double x = dim1.first + _data3->pointSize.x/2.;
-//    while(x < dim1.second)
-//    {
-//        _data1->points.push_back(x);
-//        x += _data1->pointSize;
-//    }
-
-//    return _data1;
-//}
-
-//Linear1dSpaceData *SpaceBuilder::CreateSpace(const std::pair<double, double> &dim1,
-//                                             const int &recur)
-//{
-//    int depth = pow(2, recur);
-//    return CreateSpace(dim1, depth);
-//}
-
-
-//Linear3dSpaceData *SpaceBuilder::Get3dSpace()
-//{
-//    return _data3;
-//}
-//Linear2dSpaceData *SpaceBuilder::Get2dSpace()
-//{
-//    return _data2;
-//}
-
-
-void SpaceBuilder::DeleteSpace()
-{
-    if(_space)
+    if(bufferSize && bufferSize != _bufferSize)
     {
-        delete _space;
-        _space = nullptr;
+        _bufferSize = bufferSize;
+        if(_zoneBuffer)
+            CreateBuffer(BufferType::ZoneBuffer);
+        else if(_mimageBuffer)
+            CreateBuffer(BufferType::MimageBuffer);
+    }
+    else
+    {
+
+    }
+}
+
+void SpaceManager::ResetBufferSize(int size)
+{
+    if(_bufferSize != size)
+    {
+        _bufferSize = size;
+        if(_zoneBuffer)
+            CreateBuffer(BufferType::ZoneBuffer);
+        else if(_mimageBuffer)
+            CreateBuffer(BufferType::MimageBuffer);
+    }
+}
+
+int SpaceManager::GetBufferSize()
+{
+    return _bufferSize;
+}
+
+void SpaceManager::DeleteMimageBuffer()
+{
+    if(_mimageBuffer)
+    {
+        delete _mimageBuffer;
+        _mimageBuffer = 0;
+    }
+}
+
+void SpaceManager::DeleteZoneBuffer()
+{
+    if(_zoneBuffer)
+    {
+        delete _zoneBuffer;
+        _zoneBuffer = 0;
+    }
+}
+
+void SpaceManager::CreateBuffer(BufferType buffer)
+{
+    switch (buffer)
+    {
+    case BufferType::ZoneBuffer:
+    {
+        DeleteMimageBuffer();
+    }
+    case BufferType::MimageBuffer:
+    {
+        DeleteZoneBuffer();
+    }
     }
 }

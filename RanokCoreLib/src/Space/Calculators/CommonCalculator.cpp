@@ -19,11 +19,11 @@ void CommonCalculator::CalcModel(SpaceData* space, int start, int end)
     cl_float3 point;
 
     if(end == 0)
-        end = space->GetSize();
+        end = space->GetBufferSize();
 
     for(int i = start; i < end; ++i)
     {
-        point = space->GetPos(i);
+        point = space->GetPointCoords(i);
         vertices[0] = { point.x + halfSize.x, point.y + halfSize.y, point.z + halfSize.z };
         vertices[1] = { point.x + halfSize.x, point.y + halfSize.y, point.z - halfSize.z };
         vertices[2] = { point.x + halfSize.x, point.y - halfSize.y, point.z + halfSize.z };
@@ -35,7 +35,7 @@ void CommonCalculator::CalcModel(SpaceData* space, int start, int end)
 
         for(size_t i = 0; i < verticesSize; i++)
             values[i] = program->Compute(vertices[i]);
-        space->zoneData->At(i) = GetZone(values);
+        space->zoneBuffer[i] = GetZone(values);
     }
     Complete(start, end);
 }
@@ -56,11 +56,11 @@ void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
     cl_float3 point;
 
     if(end == 0)
-        end = space->GetSize();
+        end = space->GetBufferSize();
 
     for(int i = start; i < end; ++i)
     {
-        point = space->GetPos(i);
+        point = space->GetPointCoords(i);
         wv[0] = program->Compute({point.x,        point.y,        point.z       });
         wv[1] = program->Compute({point.x+size.x, point.y,        point.z       });
         wv[2] = program->Compute({point.x,        point.y+size.y, point.z       });
@@ -105,11 +105,11 @@ void CommonCalculator::CalcMImage(SpaceData* space, int start, int end)
         double div = sqrt(pow(detA, 2)+pow(detB, 2)+
                           pow(detC, 2)+pow(detD, 2)+pow(detF, 2));
 
-        space->mimageData->At(i).Cx = detA/div;
-        space->mimageData->At(i).Cy = -detB/div;
-        space->mimageData->At(i).Cz = -detC/div;
-        space->mimageData->At(i).Cw = detD/div;
-        space->mimageData->At(i).Ct = detF/div;
+        space->mimageBuffer[i].Cx = detA/div;
+        space->mimageBuffer[i].Cy = -detB/div;
+        space->mimageBuffer[i].Cz = -detC/div;
+        space->mimageBuffer[i].Cw = detD/div;
+        space->mimageBuffer[i].Ct = detF/div;
     }
     Complete(start, end);
 }
