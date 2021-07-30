@@ -45,7 +45,7 @@ void ISpaceCalculator::Run()
         int batchSize = _batchSize;
         if(!_batchSize)
             batchSize = spaceSize;
-        else if(batchSize > bufferSize)
+        if(batchSize > bufferSize)
             batchSize = bufferSize;
 
         for(; start < spaceSize; start += bufferSize)

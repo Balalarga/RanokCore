@@ -18,11 +18,22 @@ void SpaceManager::Destroy()
         delete _selfInstance;
 }
 
+int SpaceManager::ComputeSpaceSize(const int& recur)
+{
+    unsigned depth = pow(2, recur);
+    return ComputeSpaceSize({depth, depth, depth});
+}
+
+int SpaceManager::ComputeSpaceSize(const cl_uint3 &units)
+{
+    return units.x * units.y * units.z;
+}
 SpaceManager::SpaceManager()
 {
     _bufferSize = 0;
     _mimageBuffer = 0;
     _zoneBuffer = 0;
+    _activeBuffer = BufferType::None;
 }
 SpaceManager::~SpaceManager()
 {
@@ -49,7 +60,6 @@ void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
     _startPoint.z = dim3.first + _pointHalfSize.z;
 
     _bufferSize = GetSpaceSize();
-    _activeBuffer = BufferType::ZoneBuffer;
 }
 
 void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
@@ -68,27 +78,29 @@ bool SpaceManager::WasInited()
 
 void SpaceManager::ActivateBuffer(BufferType buffer)
 {
-    if((_zoneBuffer && buffer == BufferType::ZoneBuffer) ||
-       (_mimageBuffer && buffer == BufferType::MimageBuffer))
+    if(_activeBuffer == buffer)
         return;
     CreateBuffer(buffer);
+    _activeBuffer = buffer;
 }
 
 /// Setup cpu ram memory usage
 void SpaceManager::ResetBufferSize(int size)
 {
-    if(_bufferSize != size)
-    {
-        if(size)
-            _bufferSize = size;
-        else
-            _bufferSize = GetSpaceSize();
+    if(_bufferSize == size)
+        return;
 
-        if(_zoneBuffer)
-            CreateBuffer(BufferType::ZoneBuffer);
-        else if(_mimageBuffer)
-            CreateBuffer(BufferType::MimageBuffer);
-    }
+    if(size && size < GetSpaceSize())
+        _bufferSize = size;
+    else
+        _bufferSize = GetSpaceSize();
+
+    if(_zoneBuffer || _activeBuffer == BufferType::None)
+        _activeBuffer = BufferType::ZoneBuffer;
+    else if(_mimageBuffer)
+        _activeBuffer = BufferType::ZoneBuffer;
+
+    CreateBuffer(_activeBuffer);
 }
 
 int SpaceManager::GetBufferSize()
@@ -175,6 +187,8 @@ void SpaceManager::CreateBuffer(BufferType buffer)
         break;
     case BufferType::MimageBuffer:
         _mimageBuffer = new MimageData[_bufferSize];
+        break;
+    default:
         break;
     }
     _activeBuffer = buffer;

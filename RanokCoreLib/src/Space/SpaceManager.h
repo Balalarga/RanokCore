@@ -20,10 +20,14 @@ struct MimageData
 class SpaceManager
 {
 public:
-    enum class BufferType { ZoneBuffer, MimageBuffer };
+    enum class BufferType { None, ZoneBuffer, MimageBuffer };
 
     static SpaceManager& Self();
     static void Destroy();
+
+    static int ComputeSpaceSize(const int &recur);
+    static int ComputeSpaceSize(const cl_uint3 &units);
+
     ~SpaceManager();
 
 
@@ -57,8 +61,6 @@ public:
             throw std::runtime_error("AddZoneData: out of buffer range");
         else
             _zoneBuffer[id] = data;
-        if(data == 0)
-            std::cout<<"0\n";
     }
     inline int* GetZoneBuffer(){ return _zoneBuffer; }
     inline MimageData* GetMimageBuffer(){ return _mimageBuffer; }

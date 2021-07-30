@@ -33,15 +33,15 @@ string CharToLower(char* rawSource)
 }
 
 
-void CompleteFunc(CalculatorMode mode, int batchStart, int start, int end)
+void CompleteFunc(CalculatorMode mode, int start, int batchStart, int end)
 {
     SpaceManager& space = SpaceManager::Self();
     if(mode == CalculatorMode::Model)
-        space.SaveZoneRange(resultFile, start, end);
+        space.SaveZoneRange(resultFile, start, start+end);
     else
-        space.SaveMimageRange(resultFile, start, end);
+        space.SaveMimageRange(resultFile, start, start+end);
 
-    cout<<"Written "<<(batchStart + end)*100.f/space.GetSpaceSize()<<"% points"<<endl;
+    cout<<"Written "<<(start + end)*100.f/space.GetSpaceSize()<<"% points"<<endl;
 }
 
 int main(int argc, char** argv)
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
                                    args[2]->limits,
                                    depth);
 
-    SpaceManager::Self().ResetBufferSize(pow(2, 10));
+    SpaceManager::Self().ResetBufferSize(pow(2, 20));
     auto startPoint = SpaceManager::Self().GetStartPoint();
     auto pointSize = SpaceManager::Self().GetPointSize();
     auto spaceUnits = SpaceManager::Self().GetSpaceUnits();
