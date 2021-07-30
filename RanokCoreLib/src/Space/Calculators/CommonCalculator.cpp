@@ -98,7 +98,7 @@ void CommonCalculator::CalcMImage(int start, int end)
         double detF = DeterminantOfMatrix(f, 4);
         double div = sqrt(pow(detA, 2)+pow(detB, 2)+
                           pow(detC, 2)+pow(detD, 2)+pow(detF, 2));
-        space.AddMimageData(start+i, {detA/div,
+        space.AddMimageData(i, {detA/div,
                                 -detB/div,
                                 -detC/div,
                                 detD/div,

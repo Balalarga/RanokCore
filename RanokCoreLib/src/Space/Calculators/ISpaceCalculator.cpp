@@ -37,7 +37,6 @@ void ISpaceCalculator::Run()
                 CalcMImage(start, end);
         };
 
-        int start = 0;
         int spaceSize = space.GetSpaceSize();
         int bufferSize = space.GetBufferSize();
         if(bufferSize > spaceSize)
@@ -48,7 +47,7 @@ void ISpaceCalculator::Run()
         if(batchSize > bufferSize)
             batchSize = bufferSize;
 
-        for(; start < spaceSize; start += bufferSize)
+        for(int start = 0; start < spaceSize; start += bufferSize)
         {
             int batchStart = 0;
             for(; batchStart < bufferSize; batchStart += batchSize)

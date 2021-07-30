@@ -37,9 +37,9 @@ void CompleteFunc(CalculatorMode mode, int start, int batchStart, int end)
 {
     SpaceManager& space = SpaceManager::Self();
     if(mode == CalculatorMode::Model)
-        space.SaveZoneRange(resultFile, start, start+end);
+        space.SaveZoneRange(resultFile, start+batchStart, start+end);
     else
-        space.SaveMimageRange(resultFile, start, start+end);
+        space.SaveMimageRange(resultFile, start+batchStart, start+end);
 
     cout<<"Written "<<(start + end)*100.f/space.GetSpaceSize()<<"% points"<<endl;
 }
@@ -47,7 +47,7 @@ void CompleteFunc(CalculatorMode mode, int start, int batchStart, int end)
 int main(int argc, char** argv)
 {
     arg0 = argv[0];
-    if(argc != 7 && argc != 8)
+    if(argc != 6 && argc != 7)
           ArgsError();
     string sourcePath = argv[1];
     string resultPath = argv[2];
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     string mode       = CharToLower(argv[4]);
     int    depth      = stoi(argv[5]);
     int    batchSize  = 0;
-    if(argc == 8)
+    if(argc == 7)
         batchSize = pow(2, stoi(argv[6]));
 
     Parser parser;
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
                                    args[2]->limits,
                                    depth);
 
-    SpaceManager::Self().ResetBufferSize(pow(2, 20));
+    SpaceManager::Self().ResetBufferSize(pow(2, 10));
     auto startPoint = SpaceManager::Self().GetStartPoint();
     auto pointSize = SpaceManager::Self().GetPointSize();
     auto spaceUnits = SpaceManager::Self().GetSpaceUnits();
@@ -123,6 +123,5 @@ int main(int argc, char** argv)
     cout<<"Calculating finished in "<<elapsed.count()/1000.f<<" seconds\n";
 
     resultFile.close();
-    SpaceManager::Destroy();
     return 0;
 }

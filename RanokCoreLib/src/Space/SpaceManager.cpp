@@ -4,18 +4,10 @@
 using namespace std;
 
 
-SpaceManager* SpaceManager::_selfInstance = nullptr;
 SpaceManager &SpaceManager::Self()
 {
-    if(!_selfInstance)
-        _selfInstance = new SpaceManager;
-    return *_selfInstance;
-}
-
-void SpaceManager::Destroy()
-{
-    if(_selfInstance)
-        delete _selfInstance;
+    static SpaceManager manager;
+    return manager;
 }
 
 int SpaceManager::ComputeSpaceSize(const int& recur)

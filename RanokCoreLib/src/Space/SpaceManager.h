@@ -23,7 +23,6 @@ public:
     enum class BufferType { None, ZoneBuffer, MimageBuffer };
 
     static SpaceManager& Self();
-    static void Destroy();
 
     static int ComputeSpaceSize(const int &recur);
     static int ComputeSpaceSize(const cl_uint3 &units);
@@ -99,7 +98,6 @@ protected:
 
 private:
     SpaceManager();
-    static SpaceManager* _selfInstance;
 
     cl_uint3  _spaceUnits;
     cl_float3 _startPoint;
