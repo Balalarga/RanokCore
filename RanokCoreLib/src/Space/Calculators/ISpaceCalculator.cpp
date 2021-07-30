@@ -2,10 +2,10 @@
 #include <climits>
 using namespace std;
 
-ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int)> callback):
+ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int, int)> callback):
     _finishFunction(callback),
     _mode(CalculatorMode::Model),
-    _modelColor({255, 255, 255, 20}),
+    _modelColor(Color::fromUint(255, 255, 255, 20)),
     _program(0),
     _batchSize(0)
 {
@@ -50,23 +50,25 @@ void ISpaceCalculator::Run()
 
         for(; start < spaceSize; start += bufferSize)
         {
-            for(int batchStart = 0; batchStart < bufferSize; batchStart += batchSize)
+            int batchStart = 0;
+            for(; batchStart < bufferSize; batchStart += batchSize)
             {
                 if(batchStart + batchSize < bufferSize)
                     theRun(start+batchStart, start+batchStart + batchSize);
                 else
                     theRun(start+batchStart, start+bufferSize);
+                Complete(start, batchStart, batchStart+batchSize);
             }
-            Complete(0, bufferSize);
+//            Complete(start+batchStart, 0, start+batchStart);
         }
     }
     else
         cout<<"[ISpaceCalculator] Program is null"<<endl;
 }
 
-void ISpaceCalculator::Complete(int start, int end)
+void ISpaceCalculator::Complete(int bufferStart, int start, int end)
 {
-    _finishFunction(_mode, start, end);
+    _finishFunction(_mode, bufferStart, start, end);
 }
 
 void ISpaceCalculator::SetCalculatorMode(CalculatorMode mode)
@@ -109,6 +111,11 @@ void ISpaceCalculator::SetProgram(Program *program)
 Program *ISpaceCalculator::GetProgram()
 {
     return _program;
+}
+
+void ISpaceCalculator::SetDoneCallback(std::function<void (CalculatorMode, int, int, int)> func)
+{
+
 }
 
 int ISpaceCalculator::GetBatchSize()

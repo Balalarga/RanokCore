@@ -2,7 +2,7 @@
 #define ISPACECALCULATOR_H
 
 #include "Color.h"
-#include "../SpaceBuilder.h"
+#include "../SpaceManager.h"
 #include "Language/Program.h"
 #include "LinearGradientModel.h"
 #include <functional>
@@ -16,7 +16,7 @@ enum class CalculatorMode
 class ISpaceCalculator
 {
 public:
-    ISpaceCalculator(std::function<void(CalculatorMode, int, int)> callback);
+    ISpaceCalculator(std::function<void(CalculatorMode, int, int, int)> callback);
     virtual ~ISpaceCalculator(){}
 
     virtual void CalcModel(int start = 0, int end = 0) = 0;
@@ -34,7 +34,7 @@ public:
     void SetProgram(Program *program);
     Program* GetProgram();
 
-    void SetDoneCallback(std::function<void(CalculatorMode, int, int)> func);
+    void SetDoneCallback(std::function<void(CalculatorMode, int, int, int)> func);
     int GetBatchSize();
     void SetBatchSize(int size);
 
@@ -43,11 +43,11 @@ public:
 
 
 protected:
-    void Complete(int start, int end);
+    void Complete(int bufferStart, int start, int end);
 
 
 private:
-    std::function<void(CalculatorMode, int, int)> _finishFunction;
+    std::function<void(CalculatorMode, int, int, int)> _finishFunction;
 
     Color _modelColor;
     Program* _program;

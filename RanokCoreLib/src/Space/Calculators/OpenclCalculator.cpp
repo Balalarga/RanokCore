@@ -3,7 +3,7 @@
 #include <CL/cl.h>
 using namespace std;
 
-OpenclCalculator::OpenclCalculator(std::function<void (CalculatorMode, int, int)> func):
+OpenclCalculator::OpenclCalculator(std::function<void (CalculatorMode, int, int, int)> func):
     ISpaceCalculator(func)
 {
     ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
@@ -289,7 +289,7 @@ void OpenclCalculator::CalcModel(int start, int end)
     clFinish(command_queue);
 
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
-                              (end-start) * sizeof(int), (void*)space.GetZoneBuffer(), 0, NULL, NULL);
+                              (end-start) * sizeof(int), (void*)(space.GetZoneBuffer()+start), 0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
         cout<<"Error: Failed to read output array! "<<ret<<endl;
@@ -400,7 +400,7 @@ void OpenclCalculator::CalcMImage(int start, int end)
     clFinish(command_queue);
 
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
-                              (end-start) * 5 * sizeof(cl_double), (void*)space.GetMimageBuffer(),
+                              (end-start) * 5 * sizeof(cl_double), (void*)(space.GetMimageBuffer()+start),
                               0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {

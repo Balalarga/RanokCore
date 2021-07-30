@@ -6,7 +6,7 @@
 class OpenclCalculator : public ISpaceCalculator
 {
 public:
-    OpenclCalculator(std::function<void(CalculatorMode, int, int)> func);
+    OpenclCalculator(std::function<void (CalculatorMode, int, int, int)> func);
     ~OpenclCalculator();
 
     void CalcModel(int start = 0, int end = 0) override;

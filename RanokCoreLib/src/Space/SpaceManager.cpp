@@ -1,4 +1,4 @@
-#include "SpaceBuilder.h"
+#include "SpaceManager.h"
 #include <cmath>
 
 using namespace std;
@@ -49,6 +49,7 @@ void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
     _startPoint.z = dim3.first + _pointHalfSize.z;
 
     _bufferSize = GetSpaceSize();
+    _activeBuffer = BufferType::ZoneBuffer;
 }
 
 void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
@@ -58,6 +59,11 @@ void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
 {
     unsigned depth = pow(2, recur);
     InitSpace(dim1, dim2, dim3, {depth, depth, depth});
+}
+
+bool SpaceManager::WasInited()
+{
+    return _zoneBuffer || _mimageBuffer;
 }
 
 void SpaceManager::ActivateBuffer(BufferType buffer)
@@ -116,14 +122,6 @@ void SpaceManager::SaveMimageRange(std::ostream &stream, int start, int end)
         return;
 
     stream.write((const char*)(_mimageBuffer+start), sizeof(MimageData)*(end-start));
-    for(int i = start; i < end; i++)
-    {
-        std::cout<<_mimageBuffer[i].Cx<<", "
-                <<_mimageBuffer[i].Cy<<", "
-                <<_mimageBuffer[i].Cz<<", "
-                <<_mimageBuffer[i].Cw<<", "
-                <<_mimageBuffer[i].Ct<<", "<<std::endl;
-    }
 }
 
 void SpaceManager::SaveZoneRange(std::ostream &stream, int start, int end)
@@ -132,10 +130,6 @@ void SpaceManager::SaveZoneRange(std::ostream &stream, int start, int end)
         return;
 
     stream.write((const char*)(_zoneBuffer+start), sizeof(int)*(end-start));
-    for(int i = start; i < end; i++)
-    {
-        std::cout<<_zoneBuffer[i]<<std::endl;
-    }
 }
 
 cl_float3 SpaceManager::GetPointCoords(int i)
@@ -183,4 +177,5 @@ void SpaceManager::CreateBuffer(BufferType buffer)
         _mimageBuffer = new MimageData[_bufferSize];
         break;
     }
+    _activeBuffer = buffer;
 }
