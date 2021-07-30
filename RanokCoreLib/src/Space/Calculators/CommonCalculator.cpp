@@ -32,8 +32,8 @@ void CommonCalculator::CalcModel(int start, int end)
         vertices[6] = { point.x - halfSize.x, point.y - halfSize.y, point.z + halfSize.z };
         vertices[7] = { point.x - halfSize.x, point.y - halfSize.y, point.z - halfSize.z };
 
-        for(size_t i = 0; i < verticesSize; i++)
-            values[i] = program->Compute(vertices[i]);
+        for(size_t vi = 0; vi < verticesSize; vi++)
+            values[vi] = program->Compute(vertices[vi]);
         space.AddZoneData(i, GetZone(values));
     }
 }

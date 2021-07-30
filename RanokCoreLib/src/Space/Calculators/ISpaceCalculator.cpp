@@ -6,7 +6,8 @@ ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int)
     _finishFunction(callback),
     _mode(CalculatorMode::Model),
     _modelColor({255, 255, 255, 20}),
-    _program(0)
+    _program(0),
+    _batchSize(0)
 {
     std::vector<Color> gradColors;
     gradColors.push_back(Color::fromUint(255, 255, 0,   20));
@@ -37,23 +38,27 @@ void ISpaceCalculator::Run()
         };
 
         int start = 0;
-        while(start + space.GetBufferSize() < space.GetSpaceSize())
-        {
-            while(start + _batchSize < space.GetBufferSize())
-            {
-                theRun(start, start + _batchSize);
-                start += _batchSize;
-            }
-            start -= _batchSize;
-            theRun(start, space.GetBufferSize());
-            Complete(start, start + space.GetBufferSize());
-            start += space.GetBufferSize() - _batchSize;
+        int spaceSize = space.GetSpaceSize();
+        int bufferSize = space.GetBufferSize();
+        if(bufferSize > spaceSize)
+            bufferSize = spaceSize;
+        int batchSize = _batchSize;
+        if(!_batchSize)
+            batchSize = spaceSize;
+        else if(batchSize > bufferSize)
+            batchSize = bufferSize;
 
-            if(start > space.GetSpaceSize())
-                start -= space.GetBufferSize();
+        for(; start < spaceSize; start += bufferSize)
+        {
+            for(int batchStart = 0; batchStart < bufferSize; batchStart += batchSize)
+            {
+                if(batchStart + batchSize < bufferSize)
+                    theRun(start+batchStart, start+batchStart + batchSize);
+                else
+                    theRun(start+batchStart, start+bufferSize);
+            }
+            Complete(0, bufferSize);
         }
-        theRun(start, space.GetSpaceSize());
-        Complete(start, space.GetSpaceSize());
     }
     else
         cout<<"[ISpaceCalculator] Program is null"<<endl;

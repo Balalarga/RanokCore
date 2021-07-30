@@ -110,6 +110,34 @@ cl_float3 SpaceManager::GetHalfPointSize()
     return _pointHalfSize;
 }
 
+void SpaceManager::SaveMimageRange(std::ostream &stream, int start, int end)
+{
+    if(!_mimageBuffer)
+        return;
+
+    stream.write((const char*)(_mimageBuffer+start), sizeof(MimageData)*(end-start));
+    for(int i = start; i < end; i++)
+    {
+        std::cout<<_mimageBuffer[i].Cx<<", "
+                <<_mimageBuffer[i].Cy<<", "
+                <<_mimageBuffer[i].Cz<<", "
+                <<_mimageBuffer[i].Cw<<", "
+                <<_mimageBuffer[i].Ct<<", "<<std::endl;
+    }
+}
+
+void SpaceManager::SaveZoneRange(std::ostream &stream, int start, int end)
+{
+    if(!_zoneBuffer)
+        return;
+
+    stream.write((const char*)(_zoneBuffer+start), sizeof(int)*(end-start));
+    for(int i = start; i < end; i++)
+    {
+        std::cout<<_zoneBuffer[i]<<std::endl;
+    }
+}
+
 cl_float3 SpaceManager::GetPointCoords(int i)
 {
     return

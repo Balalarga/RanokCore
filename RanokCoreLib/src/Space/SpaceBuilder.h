@@ -2,6 +2,7 @@
 #define SPACEBUILDER_H
 
 #include <stdexcept>
+#include <iostream>
 #include <vector>
 #include <CL/cl.h>
 
@@ -58,6 +59,8 @@ public:
     cl_float3 GetStartPoint();
     cl_float3 GetPointSize();
     cl_float3 GetHalfPointSize();
+    void SaveMimageRange(std::ostream& stream, int start, int end);
+    void SaveZoneRange(std::ostream &stream, int start, int end);
 
 protected:
     void DeleteMimageBuffer();
