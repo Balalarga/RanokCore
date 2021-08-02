@@ -33,18 +33,15 @@ string CharToLower(char* rawSource)
 }
 
 
-void CompleteFunc(CalculatorMode mode, int start, int end)
+void CompleteFunc(CalculatorMode mode, int start, int batchStart, int end)
 {
-    auto space = SpaceBuilder::Instance().GetSpace();
+    SpaceManager& space = SpaceManager::Self();
     if(mode == CalculatorMode::Model)
-    {
-        resultFile.write((const char*)&space->zoneData->At(start), sizeof(int)*(end-start));
-    }
+        space.SaveZoneRange(resultFile, start+batchStart, start+end);
     else
-    {
-        resultFile.write((const char*)&space->mimageData->At(start), sizeof(MimageData)*(end-start));
-    }
-    cout<<"Written "<<end*100.f/space->GetSize()<<"% points"<<endl;
+        space.SaveMimageRange(resultFile, start+batchStart, start+end);
+
+    cout<<"Written "<<(start + end)*100.f/space.GetSpaceSize()<<"% points"<<endl;
 }
 
 int main(int argc, char** argv)
@@ -97,20 +94,24 @@ int main(int argc, char** argv)
     calculator->SetBatchSize(batchSize);
 
     auto args = program->GetSymbolTable().GetAllArgs();
-    auto space = SpaceBuilder::Instance().CreateSpace(args[0]->limits,
-                                         args[1]->limits,
-                                         args[2]->limits,
-                                         depth);
+    SpaceManager::Self().InitSpace(args[0]->limits,
+                                   args[1]->limits,
+                                   args[2]->limits,
+                                   depth);
 
-    resultFile << space->startPoint.x;
-    resultFile << space->startPoint.y;
-    resultFile << space->startPoint.z;
-    resultFile << space->pointSize.x;
-    resultFile << space->pointSize.y;
-    resultFile << space->pointSize.z;
-    resultFile << space->spaceUnits.x;
-    resultFile << space->spaceUnits.y;
-    resultFile << space->spaceUnits.z;
+    SpaceManager::Self().ResetBufferSize(pow(2, 10));
+    auto startPoint = SpaceManager::Self().GetStartPoint();
+    auto pointSize = SpaceManager::Self().GetPointSize();
+    auto spaceUnits = SpaceManager::Self().GetSpaceUnits();
+    resultFile << startPoint.x;
+    resultFile << startPoint.y;
+    resultFile << startPoint.z;
+    resultFile << pointSize.x;
+    resultFile << pointSize.y;
+    resultFile << pointSize.z;
+    resultFile << spaceUnits.x;
+    resultFile << spaceUnits.y;
+    resultFile << spaceUnits.z;
 
 
     auto start = std::chrono::system_clock::now();
@@ -122,6 +123,5 @@ int main(int argc, char** argv)
     cout<<"Calculating finished in "<<elapsed.count()/1000.f<<" seconds\n";
 
     resultFile.close();
-
     return 0;
 }

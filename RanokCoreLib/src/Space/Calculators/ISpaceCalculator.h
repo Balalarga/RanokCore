@@ -2,7 +2,7 @@
 #define ISPACECALCULATOR_H
 
 #include "Color.h"
-#include "../SpaceBuilder.h"
+#include "../SpaceManager.h"
 #include "Language/Program.h"
 #include "LinearGradientModel.h"
 #include <functional>
@@ -16,11 +16,11 @@ enum class CalculatorMode
 class ISpaceCalculator
 {
 public:
-    ISpaceCalculator(std::function<void(CalculatorMode, int, int)> callback);
+    ISpaceCalculator(std::function<void(CalculatorMode, int, int, int)> callback);
     virtual ~ISpaceCalculator(){}
 
-    virtual void CalcModel(SpaceData* space, int start = 0, int end = 0) = 0;
-    virtual void CalcMImage(SpaceData* space, int start = 0, int end = 0) = 0;
+    virtual void CalcModel(int spaceOffset, int start, int end) = 0;
+    virtual void CalcMImage(int spaceOffset, int start, int end) = 0;
 
     void SetCalculatorMode(CalculatorMode mode);
     CalculatorMode GetCalculatorMode();
@@ -34,28 +34,28 @@ public:
     void SetProgram(Program *program);
     Program* GetProgram();
 
-    void SetBatchSize(int size);
+    void SetDoneCallback(std::function<void(CalculatorMode, int, int, int)> func);
     int GetBatchSize();
-
-    void SetDoneCallback(std::function<void(CalculatorMode, int, int)> func);
+    void SetBatchSize(int size);
 
     void Run();
 
+
+
 protected:
-    void Complete(int start, int end);
+    void Complete(int bufferStart, int start, int end);
 
 
 private:
-    std::function<void(CalculatorMode, int, int)> _finishFunction;
-
-    CalculatorMode _mode;
+    std::function<void(CalculatorMode, int, int, int)> _finishFunction;
 
     Color _modelColor;
+    Program* _program;
+    CalculatorMode _mode;
     LinearGradientModel _mimageColorModel;
 
-    Program* _program;
-
     int _batchSize;
+
 };
 
 #endif // ISPACECALCULATOR_H
