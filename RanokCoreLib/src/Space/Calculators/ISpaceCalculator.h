@@ -19,8 +19,8 @@ public:
     ISpaceCalculator(std::function<void(CalculatorMode, int, int, int)> callback);
     virtual ~ISpaceCalculator(){}
 
-    virtual void CalcModel(int start = 0, int end = 0) = 0;
-    virtual void CalcMImage(int start = 0, int end = 0) = 0;
+    virtual void CalcModel(int spaceOffset, int start, int end) = 0;
+    virtual void CalcMImage(int spaceOffset, int start, int end) = 0;
 
     void SetCalculatorMode(CalculatorMode mode);
     CalculatorMode GetCalculatorMode();

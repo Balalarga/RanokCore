@@ -7,7 +7,7 @@ CommonCalculator::CommonCalculator(std::function<void (CalculatorMode, int, int,
 }
 
 
-void CommonCalculator::CalcModel(int start, int end)
+void CommonCalculator::CalcModel(int spaceOffset, int start, int end)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -21,7 +21,7 @@ void CommonCalculator::CalcModel(int start, int end)
     int count = end-start;
     for(int i = 0; i < count; ++i)
     {
-        point = space.GetPointCoords(start+i);
+        point = space.GetPointCoords(spaceOffset+start+i);
         vertices[0] = { point.x + halfSize.x, point.y + halfSize.y, point.z + halfSize.z };
         vertices[1] = { point.x + halfSize.x, point.y + halfSize.y, point.z - halfSize.z };
         vertices[2] = { point.x + halfSize.x, point.y - halfSize.y, point.z + halfSize.z };
@@ -37,7 +37,7 @@ void CommonCalculator::CalcModel(int start, int end)
     }
 }
 
-void CommonCalculator::CalcMImage(int start, int end)
+void CommonCalculator::CalcMImage(int spaceOffset, int start, int end)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -54,7 +54,7 @@ void CommonCalculator::CalcMImage(int start, int end)
     int count = end-start;
     for(int i = 0; i < count; ++i)
     {
-        point = space.GetPointCoords(start+i);
+        point = space.GetPointCoords(spaceOffset+start+i);
         wv[0] = program->Compute({point.x,        point.y,        point.z       });
         wv[1] = program->Compute({point.x+size.x, point.y,        point.z       });
         wv[2] = program->Compute({point.x,        point.y+size.y, point.z       });

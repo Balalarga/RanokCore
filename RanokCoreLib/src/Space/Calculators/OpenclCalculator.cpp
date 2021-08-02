@@ -188,7 +188,7 @@ int OpenclCalculator::GetLocalGroupSize()
 }
 
 
-void OpenclCalculator::CalcModel(int start, int end)
+void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -247,8 +247,10 @@ void OpenclCalculator::CalcModel(int start, int end)
     cl_float3 pointSize = space.GetPointSize();
     cl_float3 pointHalfSize = space.GetHalfPointSize();
 
+    int batchStart = start + spaceOffset;
+
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
-    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &start);
+    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &batchStart);
     ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &spaceUnits);
     ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &startPoint);
     ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &pointSize);
@@ -299,7 +301,7 @@ void OpenclCalculator::CalcModel(int start, int end)
     ret = clReleaseMemObject(out_mem_obj);
 }
 
-void OpenclCalculator::CalcMImage(int start, int end)
+void OpenclCalculator::CalcMImage(int spaceOffset, int start, int end)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -353,13 +355,14 @@ void OpenclCalculator::CalcMImage(int start, int end)
         return;
     }
 
+    int batchStart = start + spaceOffset;
     cl_uint3 spaceUnits = space.GetSpaceUnits();
     cl_float3 startPoint = space.GetStartPoint();
     cl_float3 pointSize = space.GetPointSize();
     cl_float3 pointHalfSize = space.GetHalfPointSize();
 
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
-    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &start);
+    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &batchStart);
     ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &spaceUnits);
     ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &startPoint);
     ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &pointSize);
