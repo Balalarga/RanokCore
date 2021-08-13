@@ -13,46 +13,25 @@ void SymbolTable::Add(Expression *expr)
         int id = FindConst(expr->name);
         if(id == -1)
             m_constants.push_back(it);
-    }
-    else if(auto it = dynamic_cast<VariableExpr*>(expr))
-    {
-        int id = FindVar(expr->name);
-        if(id == -1)
-            m_variables.push_back(it);
-    }
-    else if(auto it = dynamic_cast<ArgumentExpr*>(expr))
-    {
-        int id = FindArg(expr->name);
-        if(id == -1)
-            m_arguments.push_back(it);
-    }
-}
-
-void SymbolTable::ForceAdd(Expression* expr)
-{
-    if(auto it = dynamic_cast<ConstExpr*>(expr))
-    {
-        int id = FindConst(expr->name);
-        if(id != -1)
+        else
             m_constants[id] = it;
-        else
-            m_constants.push_back(it);
     }
     else if(auto it = dynamic_cast<VariableExpr*>(expr))
     {
         int id = FindVar(expr->name);
-        if(id != -1)
-            m_variables[id] = it;
-        else
+        if(id == -1)
             m_variables.push_back(it);
+        else
+            m_variables[id] = it;
+        m_lastAddedVariable = it;
     }
     else if(auto it = dynamic_cast<ArgumentExpr*>(expr))
     {
         int id = FindArg(expr->name);
-        if(id != -1)
-            m_arguments[id] = it;
-        else
+        if(id == -1)
             m_arguments.push_back(it);
+        else
+            m_arguments[id] = it;
     }
 }
 
@@ -85,42 +64,12 @@ Expression* SymbolTable::Get(const std::string &name) const
 
 void SymbolTable::Merge(const SymbolTable &oth)
 {
-//    for(auto& i: oth.m_arguments)
-//        m_arguments[i.first] = i.second;
-
-//    for(auto& i: oth.m_variables)
-//        m_variables[i.first] = i.second;
-
-//    for(auto& i: oth.m_constants)
-//        m_constants[i.first] = i.second;
-
-//    m_lastAddedVariable = oth.m_lastAddedVariable;
-}
-
-void SymbolTable::Concat(const SymbolTable &oth)
-{
-//    for(auto& i: oth.m_arguments)
-//    {
-//        for(int o = 0; o < m_arguments; o++)
-//            if(i.first == )
-//        if(m_arguments.find(i.first) == m_arguments.end())
-//            m_arguments[i.first] = i.second;
-//    }
-
-//    for(auto& i: oth.m_variables)
-//    {
-//        if(m_variables.find(i.first) == m_variables.end())
-//        {
-//            m_variables[i.first] = i.second;
-//            m_lastAddedVariable = i.second;
-//        }
-//    }
-
-//    for(auto& i: oth.m_constants)
-//    {
-//        if(m_constants.find(i.first) == m_constants.end())
-//            m_constants[i.first] = i.second;
-//    }
+    for(auto& i: oth.m_arguments)
+        Add(i);
+    for(auto& i: oth.m_variables)
+        Add(i);
+    for(auto& i: oth.m_constants)
+        Add(i);
 }
 
 ConstExpr *SymbolTable::GetConst(const std::string &name) const

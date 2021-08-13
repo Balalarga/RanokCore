@@ -225,7 +225,6 @@ void Program::SetResult(Expression *expr)
 
 Expression* Program::MergeProgram(const Program *program)
 {
-    m_symbolTable.Merge(program->m_symbolTable);
     if(program->resultNode)
         return program->resultNode;
     else
