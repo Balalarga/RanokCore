@@ -125,6 +125,9 @@ void SpaceManager::SaveMimageRange(std::ostream &stream, int start, int end)
     if(!_mimageBuffer)
         return;
 
+    if(!end)
+        end = _bufferSize;
+
     stream.write((const char*)(_mimageBuffer+start), sizeof(MimageData)*(end-start));
 }
 
@@ -132,6 +135,8 @@ void SpaceManager::SaveZoneRange(std::ostream &stream, int start, int end)
 {
     if(!_zoneBuffer)
         return;
+    if(!end)
+        end = _bufferSize;
 
     stream.write((const char*)(_zoneBuffer+start), sizeof(int)*(end-start));
 }

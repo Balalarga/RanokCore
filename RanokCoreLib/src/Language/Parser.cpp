@@ -41,7 +41,7 @@ Program *Parser::GetProgram(SymbolTable* baseTable)
 {
     Program* program = new Program;
     if(baseTable)
-        program->GetSymbolTable().Concat(*baseTable);
+        program->GetSymbolTable().Merge(*baseTable);
     SymbolTable& table = program->GetSymbolTable();
     ToNextToken();
     if(!lexer.IsError() && !IsError())

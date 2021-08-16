@@ -86,8 +86,8 @@ public:
     cl_float3 GetHalfPointSize();
 
 
-    void SaveMimageRange(std::ostream& stream, int start, int end);
-    void SaveZoneRange(std::ostream &stream, int start, int end);
+    void SaveMimageRange(std::ostream& stream, int start = 0, int end = 0);
+    void SaveZoneRange(std::ostream &stream, int start = 0, int end = 0);
 
 
 protected:

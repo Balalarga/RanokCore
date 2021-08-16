@@ -24,7 +24,7 @@ public:
 
     void SetResult(Expression* expr);
 
-    Expression *MergeProgram(const Program* program);
+    Expression *MergeProgram(Program *program);
 
     void PrintTreeDepth(int depth) const;
     SymbolTable& GetSymbolTable();

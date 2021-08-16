@@ -11,7 +11,6 @@ public:
     SymbolTable();
 
     void Add(Expression *expr);
-    void ForceAdd(Expression* expr);
 
     ArgumentExpr* GetArgAt(size_t id) const;
     std::vector<ArgumentExpr *> GetAllArgs() const;
@@ -20,7 +19,6 @@ public:
     Expression *Get(const std::string& name) const;
 
     void Merge(const SymbolTable& oth);
-    void Concat(const SymbolTable& oth);
 
     ConstExpr* GetConst(const std::string& name) const;
     std::vector<ConstExpr*> GetAllConst() const;
