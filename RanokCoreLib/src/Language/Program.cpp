@@ -223,8 +223,10 @@ void Program::SetResult(Expression *expr)
     resultNode = expr;
 }
 
-Expression* Program::MergeProgram(const Program *program)
+Expression* Program::MergeProgram(Program *program)
 {
+    m_symbolTable.Merge(program->GetSymbolTable());
+
     if(program->resultNode)
         return program->resultNode;
     else
