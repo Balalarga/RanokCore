@@ -99,7 +99,7 @@ int main(int argc, char** argv)
                                    args[2]->limits,
                                    depth);
 
-    SpaceManager::Self().ResetBufferSize(pow(2, 10));
+    SpaceManager::Self().ResetBufferSize(pow(2, 28));
     auto startPoint = SpaceManager::Self().GetStartPoint();
     auto pointSize = SpaceManager::Self().GetPointSize();
     auto spaceUnits = SpaceManager::Self().GetSpaceUnits();

@@ -31,24 +31,20 @@ void ISpaceCalculator::Run()
 
         int spaceSize = space.GetSpaceSize();
         int bufferSize = space.GetBufferSize();
-        if(bufferSize > spaceSize)
-            bufferSize = spaceSize;
         int batchSize = _batchSize;
-        if(!_batchSize)
-            batchSize = spaceSize;
-        if(batchSize > bufferSize)
+        if(_batchSize == 0)
             batchSize = bufferSize;
 
-        int buffSize = bufferSize;
-        for(int dataOffset = 0; dataOffset < spaceSize;)
+        for(int dataOffset = 0; dataOffset < spaceSize; dataOffset += bufferSize)
         {
-            if(dataOffset + buffSize > spaceSize)
-                buffSize = spaceSize - dataOffset;
-            for(int bufferOffset = 0; bufferOffset < buffSize;)
+            if(dataOffset + bufferSize > spaceSize)
+                bufferSize = spaceSize - dataOffset;
+            for(int bufferOffset = 0; bufferOffset < bufferSize &&
+                                      bufferOffset < spaceSize; bufferOffset += batchSize)
             {
-                int batchEnd = bufferOffset+batchSize;
-                if(batchEnd > buffSize)
-                    batchEnd = buffSize;
+                int batchEnd = batchSize;
+                if(bufferOffset + batchEnd > bufferSize)
+                    batchEnd = bufferSize - bufferOffset;
 
                 if(_mode == CalculatorMode::Model)
                     CalcModel(dataOffset, bufferOffset, batchEnd);
@@ -56,11 +52,8 @@ void ISpaceCalculator::Run()
                     CalcMImage(dataOffset, bufferOffset, batchEnd);
 
                 Complete(dataOffset, bufferOffset, batchEnd);
-                bufferOffset = batchEnd;
             }
-            dataOffset += buffSize;
         }
-
     }
     else
         cout<<"[ISpaceCalculator] Program is null"<<endl;

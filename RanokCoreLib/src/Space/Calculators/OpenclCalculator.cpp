@@ -288,8 +288,6 @@ void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
         clReleaseMemObject(out_mem_obj);
         return;
     }
-    clFinish(command_queue);
-
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
                               (end-start) * sizeof(int), (void*)(space.GetZoneBuffer()+start), 0, NULL, NULL);
     if (ret != CL_SUCCESS)
@@ -298,7 +296,9 @@ void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
         clReleaseMemObject(out_mem_obj);
         return;
     }
+
     ret = clReleaseMemObject(out_mem_obj);
+    clFinish(command_queue);
 }
 
 void OpenclCalculator::CalcMImage(int spaceOffset, int start, int end)
