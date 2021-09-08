@@ -7,10 +7,10 @@
 class CommonCalculator : public ISpaceCalculator
 {
 public:
-    CommonCalculator(std::function<void (CalculatorMode, int, int, int)> func);
+    CommonCalculator(std::function<void (CalculatorMode, int, int)> func);
 
-    void CalcModel(int spaceOffset, int start, int end) override;
-    void CalcMImage(int spaceOffset, int start, int end) override;
+    void CalcModel(int spaceOffset, int count) override;
+    void CalcMImage(int spaceOffset, int count) override;
 
 protected:
     double DeterminantOfMatrix(std::vector<std::vector<double> > &mat, int n);

@@ -3,7 +3,7 @@
 #include <CL/cl.h>
 using namespace std;
 
-OpenclCalculator::OpenclCalculator(std::function<void (CalculatorMode, int, int, int)> func):
+OpenclCalculator::OpenclCalculator(std::function<void (CalculatorMode, int, int)> func):
     ISpaceCalculator(func)
 {
     ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
@@ -188,7 +188,7 @@ int OpenclCalculator::GetLocalGroupSize()
 }
 
 
-void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
+void OpenclCalculator::CalcModel(int spaceOffset, int count)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -235,7 +235,7 @@ void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
 
     // Create gpu buffers
     cl_mem out_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-                                        (end-start) * sizeof(cl_int), NULL, &ret);
+                                        count * sizeof(cl_int), NULL, &ret);
     if (!out_mem_obj)
     {
         cout<<"Error: Failed to allocate device memory!"<<endl;
@@ -247,14 +247,19 @@ void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
     cl_float3 pointSize = space.GetPointSize();
     cl_float3 pointHalfSize = space.GetHalfPointSize();
 
-    int batchStart = start + spaceOffset;
-
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
-    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &batchStart);
+    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &spaceOffset);
     ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &spaceUnits);
     ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &startPoint);
     ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &pointSize);
     ret = clSetKernelArg(kernel, 5, sizeof(cl_float3), &pointHalfSize);
+
+    cl_float3 point;
+    int spaceId = spaceOffset + 0;
+    point.x = startPoint.x + pointSize.x * (spaceId / ( spaceUnits.z * spaceUnits.y ));
+    point.y = startPoint.y + pointSize.y * ((spaceId / spaceUnits.z ) % spaceUnits.y);
+    point.z = startPoint.z + pointSize.z * (spaceId % spaceUnits.z);
+
     if (ret != CL_SUCCESS)
     {
         cout<<"Error: Failed to set kernel arguments! "<<ret<<endl;
@@ -277,9 +282,10 @@ void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
     // Execute the kernel over the entire range of our 1d input data set
     // using the maximum number of work group items for this device
     //
-    global = (end-start);
+    global = count;
     localGroupSize = local;
 
+    cout<<"Execute start"<<endl;
     ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,
                                  &global, &local, 0, NULL, NULL);
     if (ret)
@@ -289,7 +295,7 @@ void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
         return;
     }
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
-                              (end-start) * sizeof(int), (void*)(space.GetZoneBuffer()+start), 0, NULL, NULL);
+                              count * sizeof(int), (void*)(space.GetZoneBuffer()), 0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
         cout<<"Error: Failed to read output array! "<<ret<<endl;
@@ -297,11 +303,12 @@ void OpenclCalculator::CalcModel(int spaceOffset, int start, int end)
         return;
     }
 
-    ret = clReleaseMemObject(out_mem_obj);
     clFinish(command_queue);
+    cout<<"Execute finish ("<<spaceOffset<<")"<<endl;
+    ret = clReleaseMemObject(out_mem_obj);
 }
 
-void OpenclCalculator::CalcMImage(int spaceOffset, int start, int end)
+void OpenclCalculator::CalcMImage(int spaceOffset, int count)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -348,21 +355,20 @@ void OpenclCalculator::CalcMImage(int spaceOffset, int start, int end)
 
     // Create gpu buffers
     cl_mem out_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-                                        (end-start) * 5 * sizeof(cl_double), NULL, &ret);
+                                        count * 5 * sizeof(cl_double), NULL, &ret);
     if (!out_mem_obj)
     {
         cout<<"Error: Failed to allocate device memory!"<<endl;
         return;
     }
 
-    int batchStart = start + spaceOffset;
     cl_uint3 spaceUnits = space.GetSpaceUnits();
     cl_float3 startPoint = space.GetStartPoint();
     cl_float3 pointSize = space.GetPointSize();
     cl_float3 pointHalfSize = space.GetHalfPointSize();
 
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
-    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &batchStart);
+    ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &spaceOffset);
     ret = clSetKernelArg(kernel, 2, sizeof(cl_uint3), &spaceUnits);
     ret = clSetKernelArg(kernel, 3, sizeof(cl_float3), &startPoint);
     ret = clSetKernelArg(kernel, 4, sizeof(cl_float3), &pointSize);
@@ -390,7 +396,7 @@ void OpenclCalculator::CalcMImage(int spaceOffset, int start, int end)
     // using the maximum number of work group items for this device
     //
     localGroupSize = local;
-    global = (end-start);
+    global = count;
 
     ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,
                                  &global, &local, 0, NULL, NULL);
@@ -400,10 +406,9 @@ void OpenclCalculator::CalcMImage(int spaceOffset, int start, int end)
         clReleaseMemObject(out_mem_obj);
         return;
     }
-    clFinish(command_queue);
 
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
-                              (end-start) * 5 * sizeof(cl_double), (void*)(space.GetMimageBuffer()+start),
+                              count * 5 * sizeof(cl_double), (void*)(space.GetMimageBuffer()),
                               0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
@@ -411,5 +416,6 @@ void OpenclCalculator::CalcMImage(int spaceOffset, int start, int end)
         clReleaseMemObject(out_mem_obj);
         return;
     }
+    clFinish(command_queue);
     ret = clReleaseMemObject(out_mem_obj);
 }

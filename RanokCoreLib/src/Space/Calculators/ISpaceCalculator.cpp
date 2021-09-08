@@ -2,12 +2,11 @@
 #include <climits>
 using namespace std;
 
-ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int, int)> callback):
+ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int)> callback):
     _finishFunction(callback),
     _mode(CalculatorMode::Model),
     _modelColor(Color::fromUint(255, 255, 255, 20)),
-    _program(0),
-    _batchSize(0)
+    _program(0)
 {
     std::vector<Color> gradColors;
     gradColors.push_back(Color::fromUint(255, 255, 0,   20));
@@ -31,37 +30,28 @@ void ISpaceCalculator::Run()
 
         int spaceSize = space.GetSpaceSize();
         int bufferSize = space.GetBufferSize();
-        int batchSize = _batchSize;
-        if(_batchSize == 0)
-            batchSize = bufferSize;
 
         for(int dataOffset = 0; dataOffset < spaceSize; dataOffset += bufferSize)
         {
-            if(dataOffset + bufferSize > spaceSize)
-                bufferSize = spaceSize - dataOffset;
-            for(int bufferOffset = 0; bufferOffset < bufferSize &&
-                                      bufferOffset < spaceSize; bufferOffset += batchSize)
-            {
-                int batchEnd = batchSize;
-                if(bufferOffset + batchEnd > bufferSize)
-                    batchEnd = bufferSize - bufferOffset;
+            int batchEnd = bufferSize;
+            if(dataOffset + batchEnd > spaceSize)
+                batchEnd = spaceSize - dataOffset;
 
-                if(_mode == CalculatorMode::Model)
-                    CalcModel(dataOffset, bufferOffset, batchEnd);
-                else
-                    CalcMImage(dataOffset, bufferOffset, batchEnd);
+            if(_mode == CalculatorMode::Model)
+                CalcModel(dataOffset, batchEnd);
+            else
+                CalcMImage(dataOffset, batchEnd);
 
-                Complete(dataOffset, bufferOffset, batchEnd);
-            }
+            Complete(dataOffset, batchEnd);
         }
     }
     else
         cout<<"[ISpaceCalculator] Program is null"<<endl;
 }
 
-void ISpaceCalculator::Complete(int bufferStart, int start, int end)
+void ISpaceCalculator::Complete(int bufferStart, int end)
 {
-    _finishFunction(_mode, bufferStart, start, end);
+    _finishFunction(_mode, bufferStart, end);
 }
 
 void ISpaceCalculator::SetCalculatorMode(CalculatorMode mode)
@@ -106,17 +96,7 @@ Program *ISpaceCalculator::GetProgram()
     return _program;
 }
 
-void ISpaceCalculator::SetDoneCallback(std::function<void (CalculatorMode, int, int, int)> func)
+void ISpaceCalculator::SetDoneCallback(std::function<void (CalculatorMode, int, int)> func)
 {
-
-}
-
-int ISpaceCalculator::GetBatchSize()
-{
-    return _batchSize;
-}
-
-void ISpaceCalculator::SetBatchSize(int size)
-{
-    _batchSize = size;
+    _finishFunction = func;
 }

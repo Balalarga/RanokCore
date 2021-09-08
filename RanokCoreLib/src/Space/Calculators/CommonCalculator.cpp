@@ -1,13 +1,13 @@
 #include "CommonCalculator.h"
 
-CommonCalculator::CommonCalculator(std::function<void (CalculatorMode, int, int, int)> func):
+CommonCalculator::CommonCalculator(std::function<void (CalculatorMode, int, int)> func):
     ISpaceCalculator(func)
 {
 
 }
 
 
-void CommonCalculator::CalcModel(int spaceOffset, int start, int end)
+void CommonCalculator::CalcModel(int spaceOffset, int count)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -18,10 +18,9 @@ void CommonCalculator::CalcModel(int spaceOffset, int start, int end)
     cl_double3 vertices[verticesSize];
     cl_float3 point;
 
-    int count = end-start;
     for(int i = 0; i < count; ++i)
     {
-        point = space.GetPointCoords(spaceOffset+start+i);
+        point = space.GetPointCoords(spaceOffset+i);
         vertices[0] = { point.x + halfSize.x, point.y + halfSize.y, point.z + halfSize.z };
         vertices[1] = { point.x + halfSize.x, point.y + halfSize.y, point.z - halfSize.z };
         vertices[2] = { point.x + halfSize.x, point.y - halfSize.y, point.z + halfSize.z };
@@ -33,11 +32,11 @@ void CommonCalculator::CalcModel(int spaceOffset, int start, int end)
 
         for(size_t vi = 0; vi < verticesSize; vi++)
             values[vi] = program->Compute(vertices[vi]);
-        space.AddZoneData(start+i, GetZone(values));
+        space.AddZoneData(i, GetZone(values));
     }
 }
 
-void CommonCalculator::CalcMImage(int spaceOffset, int start, int end)
+void CommonCalculator::CalcMImage(int spaceOffset, int count)
 {
     SpaceManager& space = SpaceManager::Self();
 
@@ -51,10 +50,9 @@ void CommonCalculator::CalcMImage(int spaceOffset, int start, int end)
     std::vector<std::vector<double>> f;
     cl_float3 point;
 
-    int count = end-start;
     for(int i = 0; i < count; ++i)
     {
-        point = space.GetPointCoords(spaceOffset+start+i);
+        point = space.GetPointCoords(spaceOffset+i);
         wv[0] = program->Compute({point.x,        point.y,        point.z       });
         wv[1] = program->Compute({point.x+size.x, point.y,        point.z       });
         wv[2] = program->Compute({point.x,        point.y+size.y, point.z       });

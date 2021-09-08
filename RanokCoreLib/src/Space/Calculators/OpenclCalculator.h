@@ -6,11 +6,11 @@
 class OpenclCalculator : public ISpaceCalculator
 {
 public:
-    OpenclCalculator(std::function<void (CalculatorMode, int, int, int)> func);
+    OpenclCalculator(std::function<void (CalculatorMode, int, int)> func);
     ~OpenclCalculator();
 
-    void CalcModel(int spaceOffset, int start, int end) override;
-    void CalcMImage(int spaceOffset, int start, int end) override;
+    void CalcModel(int spaceOffset, int count) override;
+    void CalcMImage(int spaceOffset, int count) override;
 
     std::string CreateOpenclSource(const Program& program);
     int GetLocalGroupSize();
