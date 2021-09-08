@@ -285,7 +285,6 @@ void OpenclCalculator::CalcModel(int spaceOffset, int count)
     global = count;
     localGroupSize = local;
 
-    cout<<"Execute start"<<endl;
     ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,
                                  &global, &local, 0, NULL, NULL);
     if (ret)
@@ -304,7 +303,6 @@ void OpenclCalculator::CalcModel(int spaceOffset, int count)
     }
 
     clFinish(command_queue);
-    cout<<"Execute finish ("<<spaceOffset<<")"<<endl;
     ret = clReleaseMemObject(out_mem_obj);
 }
 

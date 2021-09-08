@@ -21,7 +21,7 @@ void ArgsError()
         <<" { Result filepath } "
         <<" { Cpu|Gpu } "<<" { Model|MImage } "
         <<" { Recursion depth } "
-        <<" (Optional){ Batch size pow } "<<endl;
+        <<" (Optional){ Buffer size power } "<<endl;
     exit(-1);
 }
 string CharToLower(char* rawSource)
@@ -33,15 +33,15 @@ string CharToLower(char* rawSource)
 }
 
 
-void CompleteFunc(CalculatorMode mode, int start, int batchStart, int end)
+void CompleteFunc(CalculatorMode mode, int batchStart, int count)
 {
     SpaceManager& space = SpaceManager::Self();
     if(mode == CalculatorMode::Model)
-        space.SaveZoneRange(resultFile, start+batchStart, start+end);
+        space.SaveZoneRange(resultFile, count);
     else
-        space.SaveMimageRange(resultFile, start+batchStart, start+end);
+        space.SaveMimageRange(resultFile, count);
 
-    cout<<"Written "<<(start + end)*100.f/space.GetSpaceSize()<<"% points"<<endl;
+    cout<<"Written "<<(batchStart+count)*100.f/space.GetSpaceSize()<<"% points"<<endl;
 }
 
 int main(int argc, char** argv)
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     string mode       = CharToLower(argv[4]);
     int    depth      = stoi(argv[5]);
     int    batchSize  = 0;
-    if(argc == 7)
+    if(argc >= 7)
         batchSize = pow(2, stoi(argv[6]));
 
     Parser parser;
@@ -67,6 +67,36 @@ int main(int argc, char** argv)
 
     unique_ptr<Program> program(parser.GetProgram());
 
+    if(device == "cpu")
+    {
+        calculator.reset(new CommonCalculator(&CompleteFunc));
+    }
+    else if(device == "gpu")
+    {
+        calculator.reset(new OpenclCalculator(&CompleteFunc));
+    }
+    else
+        ArgsError();
+
+    if(mode == "model")
+    {
+        if(!resultPath.ends_with(".mbin"))
+        {
+            resultPath += ".mbin";
+        }
+        calculator->SetCalculatorMode(CalculatorMode::Model);
+    }
+    else if(mode == "mimage")
+    {
+        if(!resultPath.ends_with(".ibin"))
+        {
+            resultPath += ".ibin";
+        }
+        calculator->SetCalculatorMode(CalculatorMode::Mimage);
+    }
+    else
+        ArgsError();
+
     resultFile.open(resultPath, ios_base::out|ios_base::binary);
     if(!resultFile)
     {
@@ -74,32 +104,14 @@ int main(int argc, char** argv)
         return -2;
     }
 
-
-    if(device == "cpu")
-        calculator.reset(new CommonCalculator(&CompleteFunc));
-    else if(device == "gpu")
-        calculator.reset(new OpenclCalculator(&CompleteFunc));
-    else
-        ArgsError();
-
-
-    if(mode == "model")
-        calculator->SetCalculatorMode(CalculatorMode::Model);
-    else if(mode == "mimage")
-        calculator->SetCalculatorMode(CalculatorMode::Mimage);
-    else
-        ArgsError();
-
     calculator->SetProgram(program.get());
-    calculator->SetBatchSize(batchSize);
 
     auto args = program->GetSymbolTable().GetAllArgs();
     SpaceManager::Self().InitSpace(args[0]->limits,
                                    args[1]->limits,
                                    args[2]->limits,
                                    depth);
-
-    SpaceManager::Self().ResetBufferSize(pow(2, 28));
+    SpaceManager::Self().ResetBufferSize(batchSize);
     auto startPoint = SpaceManager::Self().GetStartPoint();
     auto pointSize = SpaceManager::Self().GetPointSize();
     auto spaceUnits = SpaceManager::Self().GetSpaceUnits();
