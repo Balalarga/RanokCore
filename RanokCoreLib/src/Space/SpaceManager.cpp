@@ -128,7 +128,7 @@ void SpaceManager::SaveMimageRange(std::ostream &stream, int count)
     if(!count)
         count = _bufferSize;
 
-    stream.write((const char*)(_mimageBuffer), sizeof(MimageData)*count);
+    stream.write((char*)&_mimageBuffer[0], sizeof(MimageData)*count);
 }
 
 void SpaceManager::SaveZoneRange(std::ostream &stream, int count)
@@ -139,7 +139,7 @@ void SpaceManager::SaveZoneRange(std::ostream &stream, int count)
     if(!count)
         count = _bufferSize;
 
-    stream.write((const char*)(_zoneBuffer), sizeof(int)*count);
+    stream.write((char*)&_zoneBuffer[0], sizeof(int)*count);
 }
 
 cl_float3 SpaceManager::GetPointCoords(int i)

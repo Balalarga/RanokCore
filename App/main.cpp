@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     else
         ArgsError();
 
-    resultFile.open(resultPath, ios_base::out|ios_base::binary);
+    resultFile.open(resultPath, ios_base::binary);
     if(!resultFile)
     {
         cout<<"Couldn't create result file: "<<resultPath<<"\n";
