@@ -70,6 +70,7 @@ public:
                            const std::pair<double, double> &dim2,
                            const std::pair<double, double> &dim3,
                            const int &recur);
+    void InitFromMetadata();
     bool WasInited();
 
     void ActivateBuffer(BufferType buffer);

@@ -63,6 +63,26 @@ void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
     InitSpace(dim1, dim2, dim3, {depth, depth, depth});
 }
 
+void SpaceManager::InitFromMetadata()
+{
+    _spaceUnits = {metadata.commonData.spaceUnitsX,
+                  metadata.commonData.spaceUnitsY,
+                  metadata.commonData.spaceUnitsZ};
+
+    _pointSize = {metadata.commonData.pointSizeX,
+                  metadata.commonData.pointSizeY,
+                  metadata.commonData.pointSizeZ};
+    _pointHalfSize = {_pointSize.x/2.f,
+                      _pointSize.y/2.f,
+                      _pointSize.z/2.f};
+
+    _startPoint = {metadata.commonData.startPointX,
+                  metadata.commonData.startPointY,
+                  metadata.commonData.startPointZ};
+
+    _bufferSize = GetSpaceSize();
+}
+
 bool SpaceManager::WasInited()
 {
     return _zoneBuffer || _mimageBuffer;

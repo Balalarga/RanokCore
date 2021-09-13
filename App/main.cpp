@@ -37,7 +37,6 @@ void CompleteFunc(CalculatorMode mode, int batchStart, int count)
     SpaceManager& space = SpaceManager::Self();
     if(mode == CalculatorMode::Model)
     {
-        space.SaveZoneRange(resultFile, count);
         for(int i = batchStart; i < count; ++i)
         {
             if(space.GetZone(i) == 0)
@@ -47,6 +46,7 @@ void CompleteFunc(CalculatorMode mode, int batchStart, int count)
             else
                 ++space.metadata.negativeCount;
         }
+        space.SaveZoneRange(resultFile, count);
     }
     else
         space.SaveMimageRange(resultFile, count);
@@ -130,15 +130,15 @@ int main(int argc, char** argv)
     space.metadata.commonData.spaceUnitsY = spaceUnits.y;
     space.metadata.commonData.spaceUnitsZ = spaceUnits.z;
 
-    resultFile << space.metadata;
+    resultFile.write((char*)&space.metadata, sizeof(SpaceManager::ModelMetadata));
 
     auto start = std::chrono::system_clock::now();
     calculator->Run();
     auto end = std::chrono::system_clock::now();
 
     resultFile.flush();
-    resultFile.seekp(0, ios::beg);
-    resultFile << space.metadata;
+    resultFile.seekp(0);
+    resultFile.write((char*)&space.metadata, sizeof(SpaceManager::ModelMetadata));
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     cout<<"Calculating finished in "<<elapsed.count()/1000.f<<" seconds\n";
