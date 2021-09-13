@@ -20,6 +20,38 @@ struct MimageData
 class SpaceManager
 {
 public:
+    struct CommonMetadata
+    {
+        // Start point
+        float startPointX = 0,
+              startPointY = 0,
+              startPointZ = 0;
+
+        // Voxel size
+        float pointSizeX = 0,
+              pointSizeY = 0,
+              pointSizeZ = 0;
+
+        // Space size
+        unsigned spaceUnitsX = 0,
+                 spaceUnitsY = 0,
+                 spaceUnitsZ = 0;
+        friend std::ostream& operator<<(std::ostream& stream, SpaceManager::CommonMetadata& data);
+        friend std::istream& operator>>(std::istream& stream, SpaceManager::CommonMetadata& data);
+    };
+
+    struct ModelMetadata
+    {
+        CommonMetadata commonData;
+
+        // Zones data
+        unsigned positiveCount = 0,
+                 zeroCount = 0,
+                 negativeCount = 0;
+        friend std::ostream& operator<<(std::ostream& stream, SpaceManager::ModelMetadata& data);
+        friend std::istream& operator>>(std::istream& stream, SpaceManager::ModelMetadata& data);
+    } metadata;
+
     enum class BufferType { None, ZoneBuffer, MimageBuffer };
 
     static SpaceManager& Self();
@@ -110,5 +142,6 @@ private:
 
     BufferType _activeBuffer;
 };
+
 
 #endif // SPACEBUILDER_H

@@ -9,7 +9,6 @@ using namespace std;
 #include "SpaceCalculators.h"
 #include "Language/Parser.h"
 
-
 unique_ptr<ISpaceCalculator> calculator;
 ofstream resultFile;
 string arg0;
@@ -37,7 +36,18 @@ void CompleteFunc(CalculatorMode mode, int batchStart, int count)
 {
     SpaceManager& space = SpaceManager::Self();
     if(mode == CalculatorMode::Model)
+    {
         space.SaveZoneRange(resultFile, count);
+        for(int i = batchStart; i < count; ++i)
+        {
+            if(space.GetZone(i) == 0)
+                ++space.metadata.zeroCount;
+            else if(space.GetZone(i) == 1)
+                ++space.metadata.positiveCount;
+            else
+                ++space.metadata.negativeCount;
+        }
+    }
     else
         space.SaveMimageRange(resultFile, count);
 
@@ -99,31 +109,36 @@ int main(int argc, char** argv)
     }
 
     calculator->SetProgram(program.get());
-
+    SpaceManager& space = SpaceManager::Self();
     auto args = program->GetSymbolTable().GetAllArgs();
-    SpaceManager::Self().InitSpace(args[0]->limits,
+    space.InitSpace(args[0]->limits,
                                    args[1]->limits,
                                    args[2]->limits,
                                    depth);
-    SpaceManager::Self().ResetBufferSize(batchSize);
-    auto startPoint = SpaceManager::Self().GetStartPoint();
-    auto pointSize = SpaceManager::Self().GetPointSize();
-    auto spaceUnits = SpaceManager::Self().GetSpaceUnits();
-    resultFile << startPoint.x;
-    resultFile << startPoint.y;
-    resultFile << startPoint.z;
-    resultFile << pointSize.x;
-    resultFile << pointSize.y;
-    resultFile << pointSize.z;
-    resultFile << spaceUnits.x;
-    resultFile << spaceUnits.y;
-    resultFile << spaceUnits.z;
+    space.ResetBufferSize(batchSize);
+    auto startPoint = space.GetStartPoint();
+    auto pointSize = space.GetPointSize();
+    auto spaceUnits = space.GetSpaceUnits();
 
+    space.metadata.commonData.startPointX = startPoint.x;
+    space.metadata.commonData.startPointY = startPoint.y;
+    space.metadata.commonData.startPointZ = startPoint.z;
+    space.metadata.commonData.pointSizeX = pointSize.x;
+    space.metadata.commonData.pointSizeY = pointSize.y;
+    space.metadata.commonData.pointSizeZ = pointSize.z;
+    space.metadata.commonData.spaceUnitsX = spaceUnits.x;
+    space.metadata.commonData.spaceUnitsY = spaceUnits.y;
+    space.metadata.commonData.spaceUnitsZ = spaceUnits.z;
+
+    resultFile << space.metadata;
 
     auto start = std::chrono::system_clock::now();
     calculator->Run();
     auto end = std::chrono::system_clock::now();
 
+    resultFile.flush();
+    resultFile.seekp(0, ios::beg);
+    resultFile << space.metadata;
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     cout<<"Calculating finished in "<<elapsed.count()/1000.f<<" seconds\n";
