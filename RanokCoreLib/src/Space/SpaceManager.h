@@ -37,6 +37,7 @@ public:
                  spaceUnitsY = 0,
                  spaceUnitsZ = 0;
         friend std::ostream& operator<<(std::ostream& stream, SpaceManager::CommonMetadata& data);
+        friend std::istream& operator>>(std::istream& stream, SpaceManager::CommonMetadata& data);
     };
 
     struct ModelMetadata
@@ -48,6 +49,7 @@ public:
                  zeroCount = 0,
                  negativeCount = 0;
         friend std::ostream& operator<<(std::ostream& stream, SpaceManager::ModelMetadata& data);
+        friend std::istream& operator>>(std::istream& stream, SpaceManager::ModelMetadata& data);
     } metadata;
 
     enum class BufferType { None, ZoneBuffer, MimageBuffer };
