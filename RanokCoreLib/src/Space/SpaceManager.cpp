@@ -191,3 +191,29 @@ void SpaceManager::CreateBuffer(BufferType buffer)
     }
     _activeBuffer = buffer;
 }
+
+std::ostream& operator<<(std::ostream& stream, SpaceManager::CommonMetadata& data)
+{
+    stream << data.pointSizeX;
+    stream << data.pointSizeY;
+    stream << data.pointSizeZ;
+
+    stream << data.spaceUnitsX;
+    stream << data.spaceUnitsY;
+    stream << data.spaceUnitsZ;
+
+    stream << data.startPointX;
+    stream << data.startPointY;
+    stream << data.startPointZ;
+
+    return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, SpaceManager::ModelMetadata& data)
+{
+    stream << data.commonData;
+    stream << data.negativeCount;
+    stream << data.zeroCount;
+    stream << data.negativeCount;
+    return stream;
+}
