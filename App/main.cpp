@@ -80,18 +80,12 @@ int main(int argc, char** argv)
 
     if(mode == "model")
     {
-        if(!resultPath.ends_with(".mbin"))
-        {
-            resultPath += ".mbin";
-        }
+        resultPath += ".mbin";
         calculator->SetCalculatorMode(CalculatorMode::Model);
     }
     else if(mode == "mimage")
     {
-        if(!resultPath.ends_with(".ibin"))
-        {
-            resultPath += ".ibin";
-        }
+        resultPath += ".ibin";
         calculator->SetCalculatorMode(CalculatorMode::Mimage);
     }
     else
