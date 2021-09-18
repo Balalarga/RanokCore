@@ -2,19 +2,19 @@
 #include <climits>
 using namespace std;
 
+Color ISpaceCalculator::_modelColor = Color::fromUint(255, 255, 255, 20);
+LinearGradientModel ISpaceCalculator::_mimageColorModel = LinearGradientModel({Color::fromUint(255, 255, 0,   20),
+                                                                               Color::fromUint(0,   255, 162, 20),
+                                                                               Color::fromUint(0,   0,   255, 20),
+                                                                               Color::fromUint(255, 145, 0,   20),
+                                                                               Color::fromUint(214, 0,   255, 20)});
+
 ISpaceCalculator::ISpaceCalculator(std::function<void (CalculatorMode, int, int)> callback):
     _finishFunction(callback),
     _mode(CalculatorMode::Model),
-    _modelColor(Color::fromUint(255, 255, 255, 20)),
     _program(0)
 {
-    std::vector<Color> gradColors;
-    gradColors.push_back(Color::fromUint(255, 255, 0,   20));
-    gradColors.push_back(Color::fromUint(0,   255, 162, 20));
-    gradColors.push_back(Color::fromUint(0,   0,   255, 20));
-    gradColors.push_back(Color::fromUint(255, 145, 0,   20));
-    gradColors.push_back(Color::fromUint(214, 0,   255, 20));
-    SetMImageColorGradiend(gradColors);
+
 }
 
 void ISpaceCalculator::Run()

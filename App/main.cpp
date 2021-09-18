@@ -37,7 +37,7 @@ void CompleteFunc(CalculatorMode mode, int batchStart, int count)
     SpaceManager& space = SpaceManager::Self();
     if(mode == CalculatorMode::Model)
     {
-        for(int i = batchStart; i < count; ++i)
+        for(int i = 0; i < count; ++i)
         {
             if(space.GetZone(i) == 0)
                 ++space.metadata.zeroCount;

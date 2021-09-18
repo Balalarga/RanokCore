@@ -25,11 +25,11 @@ public:
     void SetCalculatorMode(CalculatorMode mode);
     CalculatorMode GetCalculatorMode();
 
-    Color GetMImageColor(double value);
-    void SetMImageColorGradiend(const std::vector<Color>& colors);
+    static Color GetMImageColor(double value);
+    static void SetMImageColorGradiend(const std::vector<Color>& colors);
 
-    Color GetModelColor();
-    void SetModelColor(const Color &newDefaultColor);
+    static Color GetModelColor();
+    static void SetModelColor(const Color &newDefaultColor);
 
     void SetProgram(Program *program);
     Program* GetProgram();
@@ -46,10 +46,10 @@ protected:
 private:
     std::function<void(CalculatorMode, int, int)> _finishFunction;
 
-    Color _modelColor;
     Program* _program;
     CalculatorMode _mode;
-    LinearGradientModel _mimageColorModel;
+    static Color _modelColor;
+    static LinearGradientModel _mimageColorModel;
 };
 
 #endif // ISPACECALCULATOR_H
