@@ -33,8 +33,14 @@ bool Parser::SetFile(const std::string &sourceFile)
 
 void Parser::SetText(const std::string &source)
 {
+    text = source;
     lexer.SetText(source);
     token.type = Token::Type::Begin;
+}
+
+const string& Parser::GetText()
+{
+    return text;
 }
 
 Program *Parser::GetProgram(SymbolTable* baseTable)

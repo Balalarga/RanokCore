@@ -13,6 +13,7 @@ public:
 
     bool SetFile(const std::string& sourceFile);
     void SetText(const std::string& source);
+    const std::string& GetText();
 
     Program* GetProgram(SymbolTable *baseTable = nullptr);
 
@@ -24,6 +25,7 @@ private:
     Token token;
 
     std::string error = "";
+    std::string text;
 
     // Функции обработки главных элементов языка
     void HandleArgument(SymbolTable& table);
