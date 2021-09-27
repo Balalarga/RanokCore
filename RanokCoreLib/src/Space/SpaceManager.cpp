@@ -20,6 +20,7 @@ int SpaceManager::ComputeSpaceSize(const cl_uint3 &units)
 {
     return units.x * units.y * units.z;
 }
+
 SpaceManager::SpaceManager()
 {
     _bufferSize = 0;
@@ -27,6 +28,7 @@ SpaceManager::SpaceManager()
     _zoneBuffer = 0;
     _activeBuffer = BufferType::None;
 }
+
 SpaceManager::~SpaceManager()
 {
     DeleteZoneBuffer();
@@ -52,6 +54,19 @@ void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
     _startPoint.z = dim3.first + _pointHalfSize.z;
 
     _bufferSize = GetSpaceSize();
+
+    metadata.commonData.spaceUnitsX = _spaceUnits.x;
+    metadata.commonData.spaceUnitsY = _spaceUnits.y;
+    metadata.commonData.spaceUnitsZ = _spaceUnits.z;
+    metadata.commonData.startPointX = _startPoint.x;
+    metadata.commonData.startPointY = _startPoint.y;
+    metadata.commonData.startPointZ = _startPoint.z;
+    metadata.commonData.pointSizeX = _pointSize.x;
+    metadata.commonData.pointSizeY = _pointSize.y;
+    metadata.commonData.pointSizeZ = _pointSize.z;
+    metadata.negativeCount = 0;
+    metadata.zeroCount = 0;
+    metadata.positiveCount = 0;
 }
 
 void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
@@ -75,7 +90,6 @@ void SpaceManager::InitFromMetadata()
     _pointHalfSize = {_pointSize.x/2.f,
                       _pointSize.y/2.f,
                       _pointSize.z/2.f};
-
     _startPoint = {metadata.commonData.startPointX,
                   metadata.commonData.startPointY,
                   metadata.commonData.startPointZ};
@@ -93,7 +107,6 @@ void SpaceManager::ActivateBuffer(BufferType buffer)
     if(_activeBuffer == buffer)
         return;
     CreateBuffer(buffer);
-    _activeBuffer = buffer;
 }
 
 /// Setup cpu ram memory usage
@@ -158,6 +171,16 @@ void SpaceManager::SaveZoneRange(std::ostream &stream, int count)
 
     if(!count)
         count = _bufferSize;
+
+    for(int i = 0; i < count; i++)
+    {
+        if(_zoneBuffer[i] < 0)
+            ++metadata.negativeCount;
+        else if(_zoneBuffer[i] == 0)
+            ++metadata.zeroCount;
+        else
+            ++metadata.positiveCount;
+    }
 
     stream.write((char*)&_zoneBuffer[0], sizeof(int)*count);
 }

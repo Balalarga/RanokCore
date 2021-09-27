@@ -20,6 +20,13 @@ struct Color
                      b/255.f, a/255.f);
     }
 
+    static Color fromHex(unsigned int color)
+    {
+        return fromUint(((color >> 24) & 0xFF),
+                        ((color >> 16) & 0xFF),
+                        ((color >> 8) & 0xFF),
+                        ((color) & 0xFF));
+    }
     float red = 0.f;
     float green = 0.f;
     float blue = 0.f;

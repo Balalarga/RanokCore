@@ -112,23 +112,9 @@ int main(int argc, char** argv)
     SpaceManager& space = SpaceManager::Self();
     auto args = program->GetSymbolTable().GetAllArgs();
     space.InitSpace(args[0]->limits,
-                                   args[1]->limits,
-                                   args[2]->limits,
-                                   depth);
+                    args[1]->limits,
+                    args[2]->limits, depth);
     space.ResetBufferSize(batchSize);
-    auto startPoint = space.GetStartPoint();
-    auto pointSize = space.GetPointSize();
-    auto spaceUnits = space.GetSpaceUnits();
-
-    space.metadata.commonData.startPointX = startPoint.x;
-    space.metadata.commonData.startPointY = startPoint.y;
-    space.metadata.commonData.startPointZ = startPoint.z;
-    space.metadata.commonData.pointSizeX = pointSize.x;
-    space.metadata.commonData.pointSizeY = pointSize.y;
-    space.metadata.commonData.pointSizeZ = pointSize.z;
-    space.metadata.commonData.spaceUnitsX = spaceUnits.x;
-    space.metadata.commonData.spaceUnitsY = spaceUnits.y;
-    space.metadata.commonData.spaceUnitsZ = spaceUnits.z;
 
     resultFile.write((char*)&space.metadata, sizeof(SpaceManager::ModelMetadata));
 
