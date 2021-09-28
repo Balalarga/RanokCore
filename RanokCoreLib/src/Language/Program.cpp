@@ -160,6 +160,38 @@ string Program::GetOpenclCode() const
     return code.str();
 }
 
+string Program::GetShaderCode() const
+{
+    stringstream code;
+    auto variables = m_symbolTable.GetAllVariables();
+    auto constants = m_symbolTable.GetAllConst();
+    auto args = m_symbolTable.GetAllArgs();
+    code << "float __resultFunc(";
+    for(int i = 0; i < args.size(); i++)
+    {
+        code << "float "<<args[i]->name;
+        if(i != args.size()- 1)
+            code<<", ";
+    }
+    code << ")\n{\n";
+    for(auto& c: constants)
+    {
+        code << "const float "<<c->name <<" = "<< c->GetValue() << ";\n";
+    }
+
+    for(auto& v: variables)
+    {
+        code << "float "<<v->name <<" =";
+        GetVariableBody(code, v->expr);
+        code << ";\n";
+    }
+
+    code << "return ";
+    GetVariableBody(code, resultNode);
+    code << ";\n}\n";
+    return code.str();
+}
+
 void Program::PrintNode(Expression *node, set<string>& vars, int currDepth, int maxDepth) const
 {
     if(maxDepth == currDepth)

@@ -30,6 +30,7 @@ public:
     SymbolTable& GetSymbolTable();
 
     std::string GetOpenclCode() const;
+    std::string GetShaderCode() const;
 
 private:
     Expression* resultNode;
