@@ -63,7 +63,7 @@ double __ror(double a, double b)
     return a + b + sqrt(pow(a, 2) + pow(b, 2));
 }
 
-char heckZone(double *values)
+char checkZone8(float *values)
 {
     bool plus = false;
     bool zero = false;
@@ -101,7 +101,7 @@ kernel void __calcualteModel(global char *resultZones,
     point.z = startPoint.z + pointSize.z * (spaceId % spaceSize.z);
 
 
-    double values[8];
+    float values[8];
     values[0] = __resultFunc(point.x+halfSize.x, point.y+halfSize.y, point.z+halfSize.z);
     values[1] = __resultFunc(point.x+halfSize.x, point.y+halfSize.y, point.z-halfSize.z);
     values[2] = __resultFunc(point.x+halfSize.x, point.y-halfSize.y, point.z+halfSize.z);
@@ -111,7 +111,7 @@ kernel void __calcualteModel(global char *resultZones,
     values[6] = __resultFunc(point.x-halfSize.x, point.y-halfSize.y, point.z+halfSize.z);
     values[7] = __resultFunc(point.x-halfSize.x, point.y-halfSize.y, point.z-halfSize.z);
 
-    resultZones[id] = checkZone(values);
+    resultZones[id] = checkZone8(values);
 }
 
 kernel void __calculateMImage(global double *result,
