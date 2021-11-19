@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <CL/cl.h>
+#include <assert.h>
 
 
 struct MimageData
@@ -82,33 +83,25 @@ public:
 
     inline void AddMimageData(const int& id, const MimageData& data)
     {
-        if(_activeBuffer != BufferType::MimageBuffer || id >= _bufferSize )
-            throw std::runtime_error("AddMimageData: out of buffer range");
-        else
-            _mimageBuffer[id] = data;
+        assert(_activeBuffer == BufferType::MimageBuffer && id < _bufferSize);
+        _mimageBuffer[id] = data;
     }
     inline void AddZoneData(const int& id, const int& data)
     {
-        if(_activeBuffer != BufferType::ZoneBuffer || id >= _bufferSize )
-            throw std::runtime_error("AddZoneData: out of buffer range");
-        else
-            _zoneBuffer[id] = data;
+        assert(_activeBuffer == BufferType::ZoneBuffer && id < _bufferSize);
+        _zoneBuffer[id] = data;
     }
-    inline int* GetZoneBuffer(){ return _zoneBuffer; }
+    inline char* GetZoneBuffer(){ return _zoneBuffer; }
     inline MimageData* GetMimageBuffer(){ return _mimageBuffer; }
-    inline const int& GetZone(int id)
+    inline const char& GetZone(int id)
     {
-        if(id >= _bufferSize )
-            throw std::runtime_error("GetZone: out of buffer range");
-        else
-            return _zoneBuffer[id];
+        assert(id < _bufferSize);
+        return _zoneBuffer[id];
     }
     inline const MimageData& GetMimage(int id)
     {
-        if(id >= _bufferSize )
-            throw std::runtime_error("GetMimage: out of buffer range");
-        else
-            return _mimageBuffer[id];
+        assert(id < _bufferSize);
+        return _mimageBuffer[id];
     }
 
 
@@ -139,7 +132,7 @@ private:
 
     int _bufferSize;
     MimageData* _mimageBuffer;
-    int*        _zoneBuffer;
+    char*        _zoneBuffer;
 
     BufferType _activeBuffer;
 };

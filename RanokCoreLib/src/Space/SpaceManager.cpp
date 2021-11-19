@@ -182,7 +182,7 @@ void SpaceManager::SaveZoneRange(std::ostream &stream, int count)
             ++metadata.positiveCount;
     }
 
-    stream.write((char*)&_zoneBuffer[0], sizeof(int)*count);
+    stream.write((char*)&_zoneBuffer[0], sizeof(_zoneBuffer[0])*count);
 }
 
 cl_float3 SpaceManager::GetPointCoords(int i)
@@ -224,7 +224,7 @@ void SpaceManager::CreateBuffer(BufferType buffer)
     switch (buffer)
     {
     case BufferType::ZoneBuffer:
-        _zoneBuffer = new int[_bufferSize];
+        _zoneBuffer = new char[_bufferSize];
         break;
     case BufferType::MimageBuffer:
         _mimageBuffer = new MimageData[_bufferSize];

@@ -63,7 +63,7 @@ double __ror(double a, double b)
     return a + b + sqrt(pow(a, 2) + pow(b, 2));
 }
 
-int checkZone(double *values)
+char heckZone(double *values)
 {
     bool plus = false;
     bool zero = false;
@@ -86,7 +86,7 @@ int checkZone(double *values)
     result << program.GetOpenclCode();
 
     result << R"(
-kernel void __calcualteModel(global int *resultZones,
+kernel void __calcualteModel(global char *resultZones,
                            const int startId,
                            const uint3 spaceSize,
                            const float3 startPoint,
@@ -235,7 +235,7 @@ void OpenclCalculator::CalcModel(int spaceOffset, int count)
 
     // Create gpu buffers
     cl_mem out_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-                                        count * sizeof(cl_int), NULL, &ret);
+                                        count * sizeof(cl_char), NULL, &ret);
     if (!out_mem_obj)
     {
         cout<<"Error: Failed to allocate device memory!"<<endl;
@@ -294,7 +294,7 @@ void OpenclCalculator::CalcModel(int spaceOffset, int count)
         return;
     }
     ret = clEnqueueReadBuffer(command_queue, out_mem_obj, CL_TRUE, 0,
-                              count * sizeof(int), (void*)(space.GetZoneBuffer()), 0, NULL, NULL);
+                              count * sizeof(char), (void*)(space.GetZoneBuffer()), 0, NULL, NULL);
     if (ret != CL_SUCCESS)
     {
         cout<<"Error: Failed to read output array! "<<ret<<endl;
