@@ -169,6 +169,12 @@ void SpaceManager::SaveZoneRange(std::ostream &stream, int count)
     stream.write((char*)&_zoneBuffer[0], sizeof(_zoneBuffer[0])*count);
 }
 
+void SpaceManager::Clear()
+{
+    DeleteMimageBuffer();
+    DeleteZoneBuffer();
+}
+
 Vector3f SpaceManager::GetPointCoords(int i)
 {
     return

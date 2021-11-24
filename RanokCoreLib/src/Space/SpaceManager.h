@@ -77,6 +77,7 @@ public:
     void SaveMimageRange(std::ostream& stream, int end = 0);
     void SaveZoneRange(std::ostream &stream, int end = 0);
 
+    void Clear();
 
 protected:
     void DeleteMimageBuffer();
