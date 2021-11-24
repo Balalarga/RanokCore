@@ -16,7 +16,7 @@ int SpaceManager::ComputeSpaceSize(const int& recur)
     return ComputeSpaceSize({depth, depth, depth});
 }
 
-int SpaceManager::ComputeSpaceSize(const cl_uint3 &units)
+int SpaceManager::ComputeSpaceSize(const Vector3u &units)
 {
     return units.x * units.y * units.z;
 }
@@ -38,35 +38,20 @@ SpaceManager::~SpaceManager()
 void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
                              const std::pair<double, double> &dim2,
                              const std::pair<double, double> &dim3,
-                             const cl_uint3 &units)
+                             const Vector3u &units)
 {
-    _spaceUnits = units;
-
-    _pointSize.x = (dim1.second-dim1.first)/units.x;
-    _pointSize.y = (dim2.second-dim2.first)/units.y;
-    _pointSize.z = (dim3.second-dim3.first)/units.z;
-
-    _pointHalfSize = {_pointSize.x/2.f,
-                      _pointSize.y/2.f,
-                      _pointSize.z/2.f};
-    _startPoint.x = dim1.first + _pointHalfSize.x;
-    _startPoint.y = dim2.first + _pointHalfSize.y;
-    _startPoint.z = dim3.first + _pointHalfSize.z;
-
-    _bufferSize = GetSpaceSize();
-
-    metadata.commonData.spaceUnitsX = _spaceUnits.x;
-    metadata.commonData.spaceUnitsY = _spaceUnits.y;
-    metadata.commonData.spaceUnitsZ = _spaceUnits.z;
-    metadata.commonData.startPointX = _startPoint.x;
-    metadata.commonData.startPointY = _startPoint.y;
-    metadata.commonData.startPointZ = _startPoint.z;
-    metadata.commonData.pointSizeX = _pointSize.x;
-    metadata.commonData.pointSizeY = _pointSize.y;
-    metadata.commonData.pointSizeZ = _pointSize.z;
+    metadata.spaceUnit = units;
+    metadata.startPoint.x = dim1.first + _halfPointSize.x;
+    metadata.startPoint.y = dim2.first + _halfPointSize.y;
+    metadata.startPoint.z = dim3.first + _halfPointSize.z;
+    metadata.pointSize.x = (dim1.second-dim1.first)/units.x;
+    metadata.pointSize.y = (dim2.second-dim2.first)/units.y;
+    metadata.pointSize.z = (dim3.second-dim3.first)/units.z;
     metadata.negativeCount = 0;
     metadata.zeroCount = 0;
     metadata.positiveCount = 0;
+
+    InitFromMetadata();
 }
 
 void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
@@ -80,20 +65,9 @@ void SpaceManager::InitSpace(const std::pair<double, double> &dim1,
 
 void SpaceManager::InitFromMetadata()
 {
-    _spaceUnits = {metadata.commonData.spaceUnitsX,
-                  metadata.commonData.spaceUnitsY,
-                  metadata.commonData.spaceUnitsZ};
-
-    _pointSize = {metadata.commonData.pointSizeX,
-                  metadata.commonData.pointSizeY,
-                  metadata.commonData.pointSizeZ};
-    _pointHalfSize = {_pointSize.x/2.f,
-                      _pointSize.y/2.f,
-                      _pointSize.z/2.f};
-    _startPoint = {metadata.commonData.startPointX,
-                  metadata.commonData.startPointY,
-                  metadata.commonData.startPointZ};
-
+    _halfPointSize = {metadata.pointSize.x/2.f,
+                      metadata.pointSize.y/2.f,
+                      metadata.pointSize.z/2.f};
     _bufferSize = GetSpaceSize();
 }
 
@@ -135,22 +109,32 @@ int SpaceManager::GetBufferSize()
 
 int SpaceManager::GetSpaceSize()
 {
-    return _spaceUnits.x * _spaceUnits.y * _spaceUnits.z;
+    return metadata.spaceUnit.x * metadata.spaceUnit.y * metadata.spaceUnit.z;
 }
 
-cl_uint3 SpaceManager::GetSpaceUnits()
+void SpaceManager::SetMetadata(const ModelMetadata &metaData)
 {
-    return _spaceUnits;
+    this->metadata = metaData;
 }
 
-cl_float3 SpaceManager::GetPointSize()
+const ModelMetadata &SpaceManager::GetMetadata()
 {
-    return _pointSize;
+    return metadata;
 }
 
-cl_float3 SpaceManager::GetHalfPointSize()
+Vector3u SpaceManager::GetSpaceUnits()
 {
-    return _pointHalfSize;
+    return metadata.spaceUnit;
+}
+
+Vector3f SpaceManager::GetPointSize()
+{
+    return metadata.pointSize;
+}
+
+Vector3f SpaceManager::GetHalfPointSize()
+{
+    return _halfPointSize;
 }
 
 void SpaceManager::SaveMimageRange(std::ostream &stream, int count)
@@ -185,19 +169,19 @@ void SpaceManager::SaveZoneRange(std::ostream &stream, int count)
     stream.write((char*)&_zoneBuffer[0], sizeof(_zoneBuffer[0])*count);
 }
 
-cl_float3 SpaceManager::GetPointCoords(int i)
+Vector3f SpaceManager::GetPointCoords(int i)
 {
     return
     {
-        _startPoint.x + _pointSize.x * (i / ( _spaceUnits.z * _spaceUnits.y)),
-        _startPoint.y + _pointSize.y * ((i / _spaceUnits.z) % _spaceUnits.y),
-        _startPoint.z + _pointSize.z * (i % _spaceUnits.z)
+        metadata.startPoint.x + metadata.pointSize.x * (i / ( metadata.spaceUnit.z * metadata.spaceUnit.y)),
+        metadata.startPoint.y + metadata.pointSize.y * ((i / metadata.spaceUnit.z) % metadata.spaceUnit.y),
+        metadata.startPoint.z + metadata.pointSize.z * (i % metadata.spaceUnit.z)
     };
 }
 
-cl_float3 SpaceManager::GetStartPoint()
+Vector3f SpaceManager::GetStartPoint()
 {
-    return _startPoint;
+    return metadata.startPoint;
 }
 void SpaceManager::DeleteMimageBuffer()
 {
@@ -235,52 +219,3 @@ void SpaceManager::CreateBuffer(BufferType buffer)
     _activeBuffer = buffer;
 }
 
-std::ostream& operator<<(std::ostream& stream, SpaceManager::CommonMetadata& data)
-{
-    stream << data.pointSizeX;
-    stream << data.pointSizeY;
-    stream << data.pointSizeZ;
-
-    stream << data.spaceUnitsX;
-    stream << data.spaceUnitsY;
-    stream << data.spaceUnitsZ;
-
-    stream << data.startPointX;
-    stream << data.startPointY;
-    stream << data.startPointZ;
-
-    return stream;
-}
-
-std::ostream& operator<<(std::ostream& stream, SpaceManager::ModelMetadata& data)
-{
-    stream << data.commonData;
-    stream << data.negativeCount;
-    stream << data.zeroCount;
-    stream << data.negativeCount;
-    return stream;
-}
-
-std::istream& operator>>(std::istream& stream, SpaceManager::CommonMetadata& data)
-{
-    stream >> data.pointSizeX;
-    stream >> data.pointSizeY;
-    stream >> data.pointSizeZ;
-    stream >> data.spaceUnitsX;
-    stream >> data.spaceUnitsY;
-    stream >> data.spaceUnitsZ;
-    stream >> data.startPointX;
-    stream >> data.startPointY;
-    stream >> data.startPointZ;
-
-    return stream;
-}
-
-std::istream& operator>>(std::istream& stream, SpaceManager::ModelMetadata& data)
-{
-    stream >> data.commonData;
-    stream >> data.negativeCount;
-    stream >> data.zeroCount;
-    stream >> data.negativeCount;
-    return stream;
-}

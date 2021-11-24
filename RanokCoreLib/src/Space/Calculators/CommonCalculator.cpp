@@ -12,11 +12,11 @@ void CommonCalculator::CalcModel(int spaceOffset, int count)
     SpaceManager& space = SpaceManager::Self();
 
     auto program = GetProgram();
-    cl_float3 halfSize = space.GetHalfPointSize();
+    Vector3f halfSize = space.GetHalfPointSize();
     constexpr unsigned verticesSize = 8;
     std::vector<double> values(8);
     cl_double3 vertices[verticesSize];
-    cl_float3 point;
+    Vector3f point;
 
     for(int i = 0; i < count; ++i)
     {
@@ -41,14 +41,14 @@ void CommonCalculator::CalcMImage(int spaceOffset, int count)
     SpaceManager& space = SpaceManager::Self();
 
     auto program = GetProgram();
-    cl_float3 size = space.GetPointSize();
+    Vector3f size = space.GetPointSize();
     std::vector<double> wv(4);
     std::vector<std::vector<double>> a;
     std::vector<std::vector<double>> b;
     std::vector<std::vector<double>> c;
     std::vector<std::vector<double>> d;
     std::vector<std::vector<double>> f;
-    cl_float3 point;
+    Vector3f point;
 
     for(int i = 0; i < count; ++i)
     {

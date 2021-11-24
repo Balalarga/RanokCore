@@ -11,10 +11,13 @@ public:
 
     ~NodeCreator()
     {
+        Clear();
+    }
+
+    void Clear()
+    {
         for(auto& i: m_nodesBase)
-        {
             delete i;
-        }
     }
 
     template<typename T, typename... TArgs>
@@ -24,8 +27,9 @@ public:
         return node;
     }
 
+
 private:
-    NodeCreator(){}
+    NodeCreator() = default;
 
     std::list<Expression*> m_nodesBase;
 };

@@ -242,10 +242,15 @@ void OpenclCalculator::CalcModel(int spaceOffset, int count)
         return;
     }
 
-    cl_uint3 spaceUnits = space.GetSpaceUnits();
-    cl_float3 startPoint = space.GetStartPoint();
-    cl_float3 pointSize = space.GetPointSize();
-    cl_float3 pointHalfSize = space.GetHalfPointSize();
+    Vector3u spaceUnitsVec = space.GetSpaceUnits();
+    Vector3f startPointVec = space.GetStartPoint();
+    Vector3f pointSizeVec = space.GetPointSize();
+    Vector3f pointHalfSizeVec = space.GetHalfPointSize();
+
+    cl_uint3 spaceUnits = {spaceUnitsVec.x, spaceUnitsVec.y, spaceUnitsVec.z};
+    cl_float3 startPoint = {startPointVec.x, startPointVec.y, startPointVec.z};
+    cl_float3 pointSize = {pointSizeVec.x, pointSizeVec.y, pointSizeVec.z};
+    cl_float3 pointHalfSize = {pointHalfSizeVec.x, pointHalfSizeVec.y, pointHalfSizeVec.z};
 
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
     ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &spaceOffset);
@@ -360,10 +365,15 @@ void OpenclCalculator::CalcMImage(int spaceOffset, int count)
         return;
     }
 
-    cl_uint3 spaceUnits = space.GetSpaceUnits();
-    cl_float3 startPoint = space.GetStartPoint();
-    cl_float3 pointSize = space.GetPointSize();
-    cl_float3 pointHalfSize = space.GetHalfPointSize();
+    Vector3u spaceUnitsVec = space.GetSpaceUnits();
+    Vector3f startPointVec = space.GetStartPoint();
+    Vector3f pointSizeVec = space.GetPointSize();
+    Vector3f pointHalfSizeVec = space.GetHalfPointSize();
+
+    cl_uint3 spaceUnits = {spaceUnitsVec.x, spaceUnitsVec.y, spaceUnitsVec.z};
+    cl_float3 startPoint = {startPointVec.x, startPointVec.y, startPointVec.z};
+    cl_float3 pointSize = {pointSizeVec.x, pointSizeVec.y, pointSizeVec.z};
+    cl_float3 pointHalfSize = {pointHalfSizeVec.x, pointHalfSizeVec.y, pointHalfSizeVec.z};
 
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&out_mem_obj);
     ret = clSetKernelArg(kernel, 1, sizeof(cl_int), &spaceOffset);

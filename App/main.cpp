@@ -10,6 +10,7 @@ using namespace std;
 #include "Language/Parser.h"
 
 unique_ptr<ISpaceCalculator> calculator;
+ModelMetadata modelMetadata;
 ofstream resultFile;
 string arg0;
 
@@ -40,11 +41,11 @@ void CompleteFunc(CalculatorMode mode, int batchStart, int count)
         for(int i = 0; i < count; ++i)
         {
             if(space.GetZone(i) == 0)
-                ++space.metadata.zeroCount;
+                ++modelMetadata.zeroCount;
             else if(space.GetZone(i) == 1)
-                ++space.metadata.positiveCount;
+                ++modelMetadata.positiveCount;
             else
-                ++space.metadata.negativeCount;
+                ++modelMetadata.negativeCount;
         }
         space.SaveZoneRange(resultFile, count);
     }
@@ -115,8 +116,9 @@ int main(int argc, char** argv)
                     args[1]->limits,
                     args[2]->limits, depth);
     space.ResetBufferSize(batchSize);
+    modelMetadata = space.GetMetadata();
 
-    resultFile.write((char*)&space.metadata, sizeof(SpaceManager::ModelMetadata));
+    resultFile.write((char*)&modelMetadata, sizeof(ModelMetadata));
 
     auto start = std::chrono::system_clock::now();
     calculator->Run();
@@ -124,7 +126,7 @@ int main(int argc, char** argv)
 
     resultFile.flush();
     resultFile.seekp(0);
-    resultFile.write((char*)&space.metadata, sizeof(SpaceManager::ModelMetadata));
+    resultFile.write((char*)&modelMetadata, sizeof(ModelMetadata));
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     cout<<"Calculating finished in "<<elapsed.count()/1000.f<<" seconds\n";
