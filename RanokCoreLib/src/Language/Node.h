@@ -17,6 +17,7 @@ struct Expression
 public:
     virtual ~Expression(){}
     virtual double GetValue() = 0;
+    virtual Expression* Visit(){ return nullptr; }
     virtual void Reset(){};
     bool IsError()
     {
@@ -32,7 +33,8 @@ public:
 
 protected:
     Expression(){}
-    void operator delete(void * ptr) {
+    void operator delete(void * ptr)
+    {
         std::free(ptr);
     }
     bool ready = false;
@@ -64,6 +66,7 @@ struct ConstExpr: public Expression
 {
     friend class NodeCreator;
 public:
+    virtual Expression* Visit() override { return expr; }
     virtual double GetValue() override
     {
         if(!ready)
@@ -107,6 +110,7 @@ struct VariableExpr: public Expression
 {
     friend class NodeCreator;
 public:
+    virtual Expression* Visit() override { return expr; }
     virtual double GetValue() override
     {
         if(!ready)
@@ -134,6 +138,7 @@ struct UnaryExpr: public Expression
 {
     friend class NodeCreator;
 public:
+    virtual Expression* Visit() override { return expr; }
     virtual double GetValue() override
     {
         if(!ready)
@@ -230,5 +235,7 @@ protected:
     }
     using Expression::operator delete;
 };
+
+
 
 #endif // NODE_H

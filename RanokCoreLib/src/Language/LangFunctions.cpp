@@ -1,4 +1,5 @@
 #include "LangFunctions.h"
+#include "Node.h"
 #include <cmath>
 
 std::map<std::string, FunctionRef> LangFunctions::functions =
@@ -38,7 +39,6 @@ std::map<std::string, UnaryOp> LangFunctions::unaryOperations =
 {
     {"-", [](double a){return -a;}}
 };
-
 
 FunctionRef LangFunctions::FindFunction(std::string name)
 {
@@ -93,8 +93,7 @@ std::string LangFunctions::FindFunctionCodeName(std::string name)
         return "asin";
     if(name == "arccos")
         return "acos";
-    if(name == "ln" ||
-            name == "log")
+    if(name == "ln" || name == "log")
         return "log";
     return name;
 }

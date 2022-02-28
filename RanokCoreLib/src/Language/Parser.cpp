@@ -1,6 +1,7 @@
 #include "Parser.h"
 
 #include "LangFunctions.h"
+#include "GeneratedFunctions.h"
 #include "Token.h"
 
 #include <sstream>
@@ -285,6 +286,48 @@ Expression* Parser::Factor(SymbolTable &table)
         auto func = LangFunctions::FindFunction(prev.name);
         if(func)
             return NodeCreator::Instance().Create<FunctionExpr>(func, Term(table));
+
+        if (auto func = GeneratedFunctions::FindVoid(prev.name))
+        {
+
+        }
+
+        if (auto func = GeneratedFunctions::FindOne(prev.name))
+        {
+
+        }
+
+        if (auto func = GeneratedFunctions::FindTwo(prev.name))
+        {
+            cout<<"Func "<<prev.name<<" founded\n";
+            CheckToken(Token::Type::ParenOpen);
+            ToNextToken();
+            CheckToken(Token::Type::Id);
+            auto var = token.name;
+            ToNextToken();
+            CheckToken(Token::Type::Comma);
+            ToNextToken();
+            CheckToken(Token::Type::Id);
+            auto arg = token.name;
+            ToNextToken();
+            CheckToken(Token::Type::Comma);
+            ToNextToken();
+            CheckToken(Token::Type::Number);
+            auto v1 = token.value;
+            ToNextToken();
+            CheckToken(Token::Type::Comma);
+            ToNextToken();
+            CheckToken(Token::Type::Number);
+            auto v2 = token.value;
+            ToNextToken();
+            CheckToken(Token::Type::ParenClose);
+            ToNextToken();
+
+            cout << var<<endl;
+            cout << arg<<endl;
+            cout << v1<<endl;
+            cout << v2<<endl;
+        }
     }
     return nullptr;
 }

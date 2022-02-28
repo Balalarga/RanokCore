@@ -17,7 +17,6 @@ public:
     static std::map<std::string, BinaryOp> binOperations;
     static std::map<std::string, UnaryOp> unaryOperations;
 
-
     static FunctionRef FindFunction(std::string);
     static std::string FindFunction(FunctionRef);
 
