@@ -21,6 +21,7 @@ public:
     std::string GetError();
 
 private:
+    Program* _program;
     Lexer lexer;
     Token token;
 

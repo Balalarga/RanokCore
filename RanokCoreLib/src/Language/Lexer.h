@@ -14,6 +14,7 @@ public:
     ~Lexer() = default;
 
     void SetText(const std::string& text);
+    void AddTextForce(const std::string& text);
 
     Token NextToken();
 

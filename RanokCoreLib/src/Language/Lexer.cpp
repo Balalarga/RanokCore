@@ -30,6 +30,30 @@ void Lexer::SetText(const std::string& text)
     m_tokens.push(token);
 }
 
+void Lexer::AddTextForce(const std::string &text)
+{
+    std::string data = text;
+    std::transform(data.begin(), data.end(), data.begin(),
+        [](unsigned char c){ return std::tolower(c); });
+    unsigned pivot = 0;
+    Token token;
+    auto buffer = m_tokens;
+
+    while(!m_tokens.empty())
+          m_tokens.pop();
+
+    while(pivot < data.size())
+    {
+        token = ParseNextToken(data, pivot);
+        m_tokens.push(token);
+    }
+    while(!buffer.empty())
+    {
+        m_tokens.push(buffer.front());
+        buffer.pop();
+    }
+}
+
 Token Lexer::NextToken()
 {
     if(!m_tokens.empty())

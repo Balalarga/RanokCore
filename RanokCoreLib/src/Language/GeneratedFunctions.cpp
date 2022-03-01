@@ -7,12 +7,12 @@ std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*)>> 
 {
 };
 
-std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*)>> GeneratedFunctions::OneArgFunctions =
+std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, double)>> GeneratedFunctions::OneArgFunctions =
 {
 };
 
 
-std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*, ConstExpr*)>> GeneratedFunctions::TwoArgFunctions =
+std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, double, double)>> GeneratedFunctions::TwoArgFunctions =
 {
     {"cut", &GeneratedFunctions::Cut}
 };
@@ -26,7 +26,7 @@ std::function<std::string (VariableExpr*, ArgumentExpr*)> GeneratedFunctions::Fi
         return (*it).second;
 }
 
-std::function<std::string (VariableExpr*, ArgumentExpr*, ConstExpr*)> GeneratedFunctions::FindOne(const std::string &name)
+std::function<std::string (VariableExpr*, ArgumentExpr*, double)> GeneratedFunctions::FindOne(const std::string &name)
 {
     auto it = OneArgFunctions.find(name);
     if (it == OneArgFunctions.end())
@@ -35,7 +35,7 @@ std::function<std::string (VariableExpr*, ArgumentExpr*, ConstExpr*)> GeneratedF
         return (*it).second;
 }
 
-std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*, ConstExpr*)> GeneratedFunctions::FindTwo(const std::string &name)
+std::function<std::string(VariableExpr*, ArgumentExpr*, double, double)> GeneratedFunctions::FindTwo(const std::string &name)
 {
     auto it = TwoArgFunctions.find(name);
     if (it == TwoArgFunctions.end())
@@ -44,7 +44,7 @@ std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*, ConstExpr*)>
         return (*it).second;
 }
 
-std::string GeneratedFunctions::Cut(VariableExpr* var, ArgumentExpr *o, ConstExpr* start, ConstExpr* end)
+std::string GeneratedFunctions::Cut(VariableExpr* var, ArgumentExpr *o, double start, double end)
 {
     /*
         var s1 = -(z - 0.5); // Верх
@@ -54,8 +54,8 @@ std::string GeneratedFunctions::Cut(VariableExpr* var, ArgumentExpr *o, ConstExp
 
     std::stringstream stream;
     stream << var->name << " & ";
-    stream << "(-" << o->name << " + " << end->GetValue() << ") & ";
-    stream << "(" << o->name << " - " << start->GetValue() << ")";
+    stream << "(-" << o->name << " + " << end << ") & ";
+    stream << "(" << o->name << " - " << start << ")";
 
     return stream.str();
 }

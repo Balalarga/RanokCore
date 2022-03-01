@@ -14,13 +14,13 @@ public:
     static std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*)>> VoidFunctions;
     static std::function<std::string(VariableExpr*, ArgumentExpr*)> FindVoid(const std::string& name);
 
-    static std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*)>> OneArgFunctions;
-    static std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*)> FindOne(const std::string& name);
+    static std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, double)>> OneArgFunctions;
+    static std::function<std::string(VariableExpr*, ArgumentExpr*, double)> FindOne(const std::string& name);
 
-    static std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*, ConstExpr*)>> TwoArgFunctions;
-    static std::function<std::string(VariableExpr*, ArgumentExpr*, ConstExpr*, ConstExpr*)> FindTwo(const std::string& name);
+    static std::map<std::string, std::function<std::string(VariableExpr*, ArgumentExpr*, double, double)>> TwoArgFunctions;
+    static std::function<std::string(VariableExpr*, ArgumentExpr*, double, double)> FindTwo(const std::string& name);
 
-    static std::string Cut(VariableExpr* var, ArgumentExpr* o, ConstExpr* start, ConstExpr* end);
+    static std::string Cut(VariableExpr* var, ArgumentExpr* o, double start, double end);
 
 };
 

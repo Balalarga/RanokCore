@@ -46,10 +46,10 @@ const string& Parser::GetText()
 
 Program *Parser::GetProgram(SymbolTable* baseTable)
 {
-    Program* program = new Program;
+    _program = new Program;
     if(baseTable)
-        program->GetSymbolTable().Merge(*baseTable);
-    SymbolTable& table = program->GetSymbolTable();
+        _program->GetSymbolTable().Merge(*baseTable);
+    SymbolTable& table = _program->GetSymbolTable();
     ToNextToken();
     if(!lexer.IsError() && !IsError())
     {
@@ -77,7 +77,7 @@ Program *Parser::GetProgram(SymbolTable* baseTable)
                 else if(token.name == "return")
                 {
                     auto expr = HandleReturn(table);
-                    program->SetResult(expr);
+                    _program->SetResult(expr);
                 }
                 else
                 {
@@ -96,11 +96,11 @@ Program *Parser::GetProgram(SymbolTable* baseTable)
             cout<<"Lexer error: "<<lexer.GetError()<<endl;
         else
             cout<<"Parser error: "<<error<<endl;
-        delete program;
-        program = nullptr;
+        delete _program;
+        _program = nullptr;
     }
 
-    return program;
+    return _program;
 }
 
 bool Parser::IsError()
@@ -299,6 +299,16 @@ Expression* Parser::Factor(SymbolTable &table)
 
         if (auto func = GeneratedFunctions::FindTwo(prev.name))
         {
+            auto checkMinus = [this]()
+            {
+                if (token.type == Token::Type::Minus)
+                {
+                    ToNextToken();
+                    return true;
+                }
+                return false;
+            };
+
             cout<<"Func "<<prev.name<<" founded\n";
             CheckToken(Token::Type::ParenOpen);
             ToNextToken();
@@ -312,21 +322,38 @@ Expression* Parser::Factor(SymbolTable &table)
             ToNextToken();
             CheckToken(Token::Type::Comma);
             ToNextToken();
+            bool v1Minus = checkMinus();
             CheckToken(Token::Type::Number);
-            auto v1 = token.value;
+            auto v1 = token.value * (v1Minus ? -1 : 1);
             ToNextToken();
             CheckToken(Token::Type::Comma);
             ToNextToken();
+            bool v2Minus = checkMinus();
             CheckToken(Token::Type::Number);
-            auto v2 = token.value;
+            auto v2 = token.value * (v2Minus ? -1 : 1);
             ToNextToken();
             CheckToken(Token::Type::ParenClose);
-            ToNextToken();
 
-            cout << var<<endl;
-            cout << arg<<endl;
-            cout << v1<<endl;
-            cout << v2<<endl;
+            auto varExpr = table.GetVariable(var);
+            auto argExpr = table.GetArgument(arg);
+
+            bool error = false;
+            if(!varExpr)
+            {
+                cout<<"Couldn't find "<<var<<" variable\n";
+                error = true;
+            }
+            if(!argExpr)
+            {
+                cout<<"Couldn't find "<<arg<<" argument\n";
+                error = true;
+            }
+            if (!error)
+            {
+                lexer.AddTextForce(func(varExpr, argExpr, v1, v2));
+                ToNextToken();
+                return Expr(table);
+            }
         }
     }
     return nullptr;
